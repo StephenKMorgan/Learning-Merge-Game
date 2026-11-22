@@ -172,6 +172,12 @@ fun SettingsScreen(vm: GameViewModel, state: GameState) {
                             "Fonts: Fredoka and Nunito (SIL Open Font License).\n" +
                             "Cinnamon rolls, sounds and everything else: made for this game.",
                             style = MaterialTheme.typography.bodySmall)
+                        Spacer(Modifier.height(8.dp))
+                        val version = remember {
+                            runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() ?: "?"
+                        }
+                        Text("Version $version", style = MaterialTheme.typography.bodySmall)
+                        Text("Updates: stephenkmorgan.github.io/bakery", style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }

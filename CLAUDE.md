@@ -25,7 +25,8 @@ fully offline. In-game "purchases" are paid with brain puzzles instead of money.
 
 Updates must NEVER lose Mandy's progress.
 - Never change `applicationId` (`com.surfswirl.bakery`) or the signing key `android/app/bakery-debug.keystore`.
-- Bump `versionCode` in `android/app/build.gradle.kts` for every release.
+- Release version numbers must always go up (versionCode = major*10000 + minor*100 + patch, set by the release
+  workflow). Android refuses an update with a lower versionCode.
 - `GameState` fields: every field has a default; never rename or remove one (add new ones). Unknown fields
   are ignored on load, nulls fall back to defaults.
 - Item ids (`"bread:3"`, `"gen:surf"`), task ids (`c1_sweep`), event ids and puzzle type names are stored in the
@@ -51,6 +52,16 @@ Updates must NEVER lose Mandy's progress.
 math at 1.25–1.3). The shop price is an effort; the level offered for each type is `effort / factor`. After
 every puzzle the factor moves toward her performance (solved, mistakes, hints, time vs. her own median).
 A fast clean solve gives a hidden +25% "lucky bonus" — never show a timer or mention speed in the UI.
+
+## Releasing to Mandy
+
+Nothing reaches her until a release is published. Edit `RELEASE_NOTES.md`, then GitHub → Actions →
+"Publish release" → Run workflow with a version like `1.1.0` (or push a tag `v1.1.0`). It runs the tests, builds
+the APK with that version, and publishes it. The download link never changes:
+`https://github.com/StephenKMorgan/Learning-Merge-Game/releases/latest/download/surf-and-swirl.apk`.
+Her download page is `bakery/index.html` in the `StephenKMorgan.github.io` repo
+(https://stephenkmorgan.github.io/bakery/); it reads the latest release from the GitHub API.
+Everyday CI builds are version "dev" (versionCode 1) and are only for testing.
 
 ## Build & test
 

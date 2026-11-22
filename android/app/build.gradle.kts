@@ -15,9 +15,10 @@ android {
         applicationId = "com.surfswirl.bakery"
         minSdk = 26
         targetSdk = 34
-        // Bump versionCode on every release so the new APK installs over the old one.
-        versionCode = 1
-        versionName = "1.0"
+        // Release builds get these from the version number (see .github/workflows/release.yml):
+        // 1.2.3 -> versionCode 10203. It must go up every release or Android refuses the update.
+        versionCode = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1
+        versionName = System.getenv("VERSION_NAME") ?: "dev"
     }
 
     signingConfigs {

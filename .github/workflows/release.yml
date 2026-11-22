@@ -1,0 +1,71 @@
+name: Publish release
+
+# Publishes a new version for Mandy to download. Nothing is published until you run this.
+# Easiest way: GitHub → Actions → "Publish release" → Run workflow → type a version like 1.0.0.
+# (Pushing a tag like v1.0.0 does the same thing.)
+# The APK always lands at:
+#   https://github.com/StephenKMorgan/Learning-Merge-Game/releases/latest/download/surf-and-swirl.apk
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number, like 1.0.0 (must be higher than the last release)"
+        required: true
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Work out the version
+        id: v
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then V="$INPUT_VERSION"; else V="$GITHUB_REF_NAME"; fi
+          V="${V#v}"
+          if ! [[ "$V" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "::error::Version must look like 1.0.0 (got '$V')"; exit 1
+          fi
+          IFS=. read -r MA MI PA <<< "$V"; PA=${PA:-0}
+          if [ "$MI" -gt 99 ] || [ "$PA" -gt 99 ]; then echo "::error::Minor and patch must be 0-99"; exit 1; fi
+          echo "name=$V" >> "$GITHUB_OUTPUT"
+          echo "code=$((MA * 10000 + MI * 100 + PA))" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Tests
+        working-directory: android
+        run: ./gradlew testDebugUnitTest --no-daemon
+
+      - name: Build APK
+        working-directory: android
+        env:
+          VERSION_NAME: ${{ steps.v.outputs.name }}
+          VERSION_CODE: ${{ steps.v.outputs.code }}
+        run: |
+          ./gradlew assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk ../surf-and-swirl.apk
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.v.outputs.name }}
+          target_commitish: ${{ github.sha }}
+          name: Surf & Swirl ${{ steps.v.outputs.name }}
+          body_path: RELEASE_NOTES.md
+          files: surf-and-swirl.apk
+          make_latest: true
