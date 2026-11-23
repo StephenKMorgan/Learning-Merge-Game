@@ -20,7 +20,7 @@ Event dates are fixed in `Events.kt`. "Ship by" leaves ~10 days of slack before 
 | Release | Ship by | Event (dates) | Chapter | Event story place | Gameplay extra |
 |---|---|---|---|---|---|
 | ✅ 1.2.0 | Nov 23 | Frosty Holidays (Dec 1–Jan 6) | 3 · Cinnamon Famous (kitchen) | Grandma June's Cottage | Places, explore, customizer |
-| 1.3.0 | **mid-Dec** | (architecture) | – | – | Map of Maple Lane, board obstacles per chapter, daily specials + weekly mini-events, time-released chapters, scene kit |
+| ✅ 1.3.0 | Nov 23 | (architecture) | – | – | Map of Maple Lane, board obstacles per chapter, daily specials + weekly mini-events, time-released chapters, scene kit |
 | 1.4.0 | **Jan 20** | Sweetheart Days (Feb 1–15) | 4 · Home Above the Bakery (loft) + 5 · Saturday Market (opens Mar 1) | Rose Tea Room | Puzzle: Logic Grid riddles |
 | 1.5.0 | **Mar 10** | Spring Bloom (Mar 20–Apr 30) | 6 · Surf's Beach Café (opens Jun 1) | Bea's Greenhouse | Item chain: Pies & Tarts + generator |
 | 1.6.0 | **Jun 8** | Surf's Summer (Jun 20–Aug 15) | 7 · The Bakery Garden | Kai's Beach Shack | Collection book with rewards |
