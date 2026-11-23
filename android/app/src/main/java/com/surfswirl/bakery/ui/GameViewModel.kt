@@ -78,6 +78,7 @@ sealed interface Dialog {
     data object Storage : Dialog
     /** Full-screen look around a story place: pinch to zoom, tap things to hear their story. */
     data class Visit(val scene: String) : Dialog
+    data object Customize : Dialog
 }
 
 data class Ui(
@@ -414,6 +415,11 @@ class GameViewModel(
             }
             layer.show.startsWith("undone:") -> toast("Fix this up with a renovation task!")
         }
+    }
+
+    fun updateAvatar(f: (com.surfswirl.bakery.game.Avatar) -> com.surfswirl.bakery.game.Avatar) {
+        sfx?.play(Sound.TAP)
+        updateSettings { it.copy(avatar = f(it.avatar)) }
     }
 
     fun updateSettings(f: (com.surfswirl.bakery.game.Settings) -> com.surfswirl.bakery.game.Settings) {

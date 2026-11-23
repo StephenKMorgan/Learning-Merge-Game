@@ -10,7 +10,9 @@
    "w": 1350,
    "h": 1172,
    "z": 0,
-   "show": "always"
+   "show": "always",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "snowman",
@@ -20,7 +22,9 @@
    "w": 153,
    "h": 177,
    "z": 4,
-   "show": "done:frosty_9"
+   "show": "done:frosty_9",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "fire",
@@ -30,7 +34,9 @@
    "w": 379,
    "h": 379,
    "z": 6,
-   "show": "done:frosty_1"
+   "show": "done:frosty_1",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "stockings",
@@ -40,7 +46,9 @@
    "w": 399,
    "h": 157,
    "z": 8,
-   "show": "done:frosty_2"
+   "show": "done:frosty_2",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "garland",
@@ -50,7 +58,9 @@
    "w": 1350,
    "h": 351,
    "z": 9,
-   "show": "done:frosty_5"
+   "show": "done:frosty_5",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "wreath",
@@ -60,7 +70,9 @@
    "w": 133,
    "h": 162,
    "z": 9,
-   "show": "done:frosty_6"
+   "show": "done:frosty_6",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "tree",
@@ -70,7 +82,9 @@
    "w": 428,
    "h": 597,
    "z": 10,
-   "show": "done:frosty_3"
+   "show": "done:frosty_3",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "tree_decor",
@@ -80,7 +94,9 @@
    "w": 316,
    "h": 575,
    "z": 11,
-   "show": "done:frosty_4"
+   "show": "done:frosty_4",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "presents",
@@ -90,17 +106,201 @@
    "w": 401,
    "h": 164,
    "z": 12,
-   "show": "done:frosty_8"
+   "show": "done:frosty_8",
+   "tint": "",
+   "variant": ""
   },
   {
-   "id": "mandy",
-   "file": "cottage_mandy.webp",
-   "x": 910,
-   "y": 448,
-   "w": 229,
-   "h": 365,
+   "id": "mandy_legs",
+   "file": "cottage_mandy_legs.webp",
+   "x": 936,
+   "y": 707,
+   "w": 128,
+   "h": 127,
    "z": 20,
-   "show": "always"
+   "show": "always",
+   "tint": "",
+   "variant": ""
+  },
+  {
+   "id": "mandy_hair_back_bob",
+   "file": "cottage_mandy_hair_back_bob.webp",
+   "x": 931,
+   "y": 522,
+   "w": 138,
+   "h": 136,
+   "z": 20,
+   "show": "always",
+   "tint": "hair",
+   "variant": "bob"
+  },
+  {
+   "id": "mandy_hair_back_long",
+   "file": "cottage_mandy_hair_back_long.webp",
+   "x": 923,
+   "y": 514,
+   "w": 154,
+   "h": 200,
+   "z": 20,
+   "show": "always",
+   "tint": "hair",
+   "variant": "long"
+  },
+  {
+   "id": "mandy_hair_back_ponytail",
+   "file": "cottage_mandy_hair_back_ponytail.webp",
+   "x": 934,
+   "y": 520,
+   "w": 165,
+   "h": 162,
+   "z": 20,
+   "show": "always",
+   "tint": "hair",
+   "variant": "ponytail"
+  },
+  {
+   "id": "mandy_hair_back_curly",
+   "file": "cottage_mandy_hair_back_curly.webp",
+   "x": 915,
+   "y": 506,
+   "w": 170,
+   "h": 165,
+   "z": 20,
+   "show": "always",
+   "tint": "hair",
+   "variant": "curly"
+  },
+  {
+   "id": "mandy_body",
+   "file": "cottage_mandy_body.webp",
+   "x": 910,
+   "y": 559,
+   "w": 226,
+   "h": 223,
+   "z": 20,
+   "show": "always",
+   "tint": "",
+   "variant": ""
+  },
+  {
+   "id": "mandy_apron",
+   "file": "cottage_mandy_apron.webp",
+   "x": 953,
+   "y": 631,
+   "w": 94,
+   "h": 126,
+   "z": 20,
+   "show": "always",
+   "tint": "outfit",
+   "variant": ""
+  },
+  {
+   "id": "mandy_hand",
+   "file": "cottage_mandy_hand.webp",
+   "x": 1089,
+   "y": 559,
+   "w": 35,
+   "h": 35,
+   "z": 20,
+   "show": "always",
+   "tint": "skin",
+   "variant": ""
+  },
+  {
+   "id": "mandy_skin",
+   "file": "cottage_mandy_skin.webp",
+   "x": 954,
+   "y": 529,
+   "w": 92,
+   "h": 92,
+   "z": 20,
+   "show": "always",
+   "tint": "skin",
+   "variant": ""
+  },
+  {
+   "id": "mandy_hair_front_bob",
+   "file": "cottage_mandy_hair_front_bob.webp",
+   "x": 954,
+   "y": 538,
+   "w": 93,
+   "h": 35,
+   "z": 20,
+   "show": "always",
+   "tint": "hair",
+   "variant": "bob"
+  },
+  {
+   "id": "mandy_hair_front_long",
+   "file": "cottage_mandy_hair_front_long.webp",
+   "x": 954,
+   "y": 538,
+   "w": 93,
+   "h": 35,
+   "z": 20,
+   "show": "always",
+   "tint": "hair",
+   "variant": "long"
+  },
+  {
+   "id": "mandy_hair_front_ponytail",
+   "file": "cottage_mandy_hair_front_ponytail.webp",
+   "x": 956,
+   "y": 535,
+   "w": 88,
+   "h": 32,
+   "z": 20,
+   "show": "always",
+   "tint": "hair",
+   "variant": "ponytail"
+  },
+  {
+   "id": "mandy_hair_front_curly",
+   "file": "cottage_mandy_hair_front_curly.webp",
+   "x": 953,
+   "y": 536,
+   "w": 94,
+   "h": 35,
+   "z": 20,
+   "show": "always",
+   "tint": "hair",
+   "variant": "curly"
+  },
+  {
+   "id": "mandy_face",
+   "file": "cottage_mandy_face.webp",
+   "x": 963,
+   "y": 570,
+   "w": 74,
+   "h": 34,
+   "z": 20,
+   "show": "always",
+   "tint": "",
+   "variant": ""
+  },
+  {
+   "id": "mandy_glasses",
+   "file": "cottage_mandy_glasses.webp",
+   "x": 968,
+   "y": 563,
+   "w": 64,
+   "h": 30,
+   "z": 20,
+   "show": "always",
+   "tint": "",
+   "variant": "glasses"
+  },
+  {
+   "id": "mandy_hat",
+   "file": "cottage_mandy_hat.webp",
+   "x": 948,
+   "y": 457,
+   "w": 104,
+   "h": 85,
+   "z": 20,
+   "show": "always",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "cocoa",
@@ -110,7 +310,9 @@
    "w": 326,
    "h": 322,
    "z": 30,
-   "show": "done:frosty_7"
+   "show": "done:frosty_7",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "surf_rug",
@@ -120,7 +322,9 @@
    "w": 339,
    "h": 158,
    "z": 40,
-   "show": "always"
+   "show": "always",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "surf_hat",
@@ -130,7 +334,9 @@
    "w": 115,
    "h": 97,
    "z": 41,
-   "show": "done:frosty_10"
+   "show": "done:frosty_10",
+   "tint": "",
+   "variant": ""
   }
  ]
 }

@@ -3,6 +3,7 @@ package com.surfswirl.bakery.ui.screens
 import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -51,8 +52,14 @@ import kotlinx.serialization.json.Json
 
 /** One picture in a scene, drawn at (x, y) in scene pixels. See tools/scenes/make_scenes.py. */
 @Serializable
-data class SceneLayer(val id: String, val file: String, val x: Int, val y: Int, val w: Int, val h: Int, val z: Int, val show: String) {
-    fun visible(done: Set<String>) = when {
+data class SceneLayer(
+    val id: String, val file: String, val x: Int, val y: Int, val w: Int, val h: Int, val z: Int, val show: String,
+    /** "hair" / "skin" / "outfit": a grey part of Mandy that is multiplied by her chosen colour. */
+    val tint: String = "",
+    /** A hair style id or "glasses": only shown when the baker's look uses it. */
+    val variant: String = "",
+) {
+    fun visible(done: Set<String>, avatar: com.surfswirl.bakery.game.Avatar = com.surfswirl.bakery.game.Avatar()) = avatar.shows(variant) && when {
         show.startsWith("done:") -> show.removePrefix("done:") in done
         show.startsWith("undone:") -> show.removePrefix("undone:") !in done
         else -> true
@@ -85,7 +92,15 @@ fun SceneView(scene: String, done: Set<String>, nextTask: String?, onTapLayer: (
               onExpand: (() -> Unit)? = null, modifier: Modifier = Modifier, rounded: Boolean = true) {
     val ctx = LocalContext.current
     val def = remember(scene) { Scenes.def(ctx, scene) } ?: return
+    val avatar = com.surfswirl.bakery.ui.theme.LocalAvatar.current
+    val avatarNow by rememberUpdatedState(avatar)
     val doneNow by rememberUpdatedState(done)
+    // One shared idle bob, so all of Mandy's parts (and Surf's hat) move together
+    val idle = androidx.compose.animation.core.rememberInfiniteTransition(label = "idle")
+    val mandyBob by idle.animateFloat(-2.5f, 2.5f, androidx.compose.animation.core.infiniteRepeatable(
+        tween(2200, easing = FastOutSlowInEasing), androidx.compose.animation.core.RepeatMode.Reverse), label = "mandy")
+    val surfBob by idle.animateFloat(-1.5f, 1.5f, androidx.compose.animation.core.infiniteRepeatable(
+        tween(900, easing = FastOutSlowInEasing), androidx.compose.animation.core.RepeatMode.Reverse), label = "surf")
     val onTap by rememberUpdatedState(onTapLayer)
     BoxWithConstraints(modifier.fillMaxWidth().aspectRatio(def.w / def.h.toFloat())
         .then(if (rounded) Modifier.clip(RoundedCornerShape(18.dp())) else Modifier)
@@ -98,7 +113,7 @@ fun SceneView(scene: String, done: Set<String>, nextTask: String?, onTapLayer: (
                 val kk = size.width / def.w.toFloat()
                 val sx = (pos.x / kk).toInt(); val sy = (pos.y / kk).toInt()
                 val hit = def.layers.sortedByDescending { it.z }.firstOrNull { l ->
-                    if (l.id == "base" || !l.visible(doneNow)) return@firstOrNull false
+                    if (l.id == "base" || !l.visible(doneNow, avatarNow)) return@firstOrNull false
                     if (sx < l.x || sy < l.y || sx >= l.x + l.w || sy >= l.y + l.h) return@firstOrNull false
                     val bmp = Scenes.image(ctx, l.file)?.asAndroidBitmap() ?: return@firstOrNull false
                     val px = bmp.getPixel((sx - l.x).coerceIn(0, bmp.width - 1), (sy - l.y).coerceIn(0, bmp.height - 1))
@@ -107,9 +122,9 @@ fun SceneView(scene: String, done: Set<String>, nextTask: String?, onTapLayer: (
                 if (hit != null) handler(hit)
             }
         })
-        val density = LocalDensity.current
+        val dens = LocalDensity.current
         for (layer in def.layers.sortedBy { it.z }) key(layer.id) {
-            val visible = layer.visible(done)
+            val visible = layer.visible(done, avatar)
             val a by animateFloatAsState(if (visible) 1f else 0f,
                 if (layer.show.startsWith("done:")) spring(dampingRatio = 0.45f, stiffness = 220f) else tween(700, easing = FastOutSlowInEasing),
                 label = layer.id)
@@ -118,15 +133,18 @@ fun SceneView(scene: String, done: Set<String>, nextTask: String?, onTapLayer: (
                 if (img != null) {
                     val character = layer.id.startsWith("mandy") || layer.id.startsWith("surf")
                     val isSurf = layer.id.startsWith("surf")
-                    Image(img, contentDescription = null,
+                    val tintColor = avatar.tint(layer.tint)?.let {
+                        androidx.compose.ui.graphics.ColorFilter.tint(Color(it), androidx.compose.ui.graphics.BlendMode.Modulate)
+                    }
+                    Image(img, contentDescription = null, colorFilter = tintColor,
                         modifier = Modifier
                             .offset { IntOffset((layer.x * k).toInt(), (layer.y * k).toInt()) }
-                            .size(with(density) { (layer.w * k).toDp() }, with(density) { (layer.h * k).toDp() })
+                            .size(with(dens) { (layer.w * k).toDp() }, with(dens) { (layer.h * k).toDp() })
                             .graphicsLayer {
                                 alpha = a.coerceIn(0f, 1f)
-                                if (layer.show.startsWith("done:")) { val s = 0.6f + 0.4f * a; scaleX = s; scaleY = s }
+                                if (layer.show.startsWith("done:") && !character) { val s = 0.6f + 0.4f * a; scaleX = s; scaleY = s }
+                                if (character) translationY = (if (isSurf) surfBob else mandyBob) * this.density
                             }
-                            .then(if (character) Modifier.bob(if (isSurf) 1.5f else 2.5f, if (isSurf) 900 else 2200) else Modifier)
                             )
                 }
             }
@@ -138,7 +156,7 @@ fun SceneView(scene: String, done: Set<String>, nextTask: String?, onTapLayer: (
             val cy = (target.y + target.h / 2f) * k
             val d = (minOf(maxOf(target.w, target.h) * k * 0.6f, constraints.maxWidth * 0.22f)).coerceAtLeast(constraints.maxWidth * 0.1f)
             Box(Modifier.offset { IntOffset((cx - d / 2).toInt(), (cy - d / 2).toInt()) }
-                .size(with(density) { d.toDp() }).pulse(amount = 0.08f), contentAlignment = Alignment.Center) {
+                .size(with(dens) { d.toDp() }).pulse(amount = 0.08f), contentAlignment = Alignment.Center) {
                 Canvas(Modifier.fillMaxSize()) {
                     drawCircle(Color(0x88FFFFFF), size.minDimension / 2)
                     drawCircle(Color.White, size.minDimension / 2, style = Stroke(5f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f))))

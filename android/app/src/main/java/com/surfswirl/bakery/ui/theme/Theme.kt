@@ -48,6 +48,9 @@ data class GameColors(
 
 val LocalGameColors = staticCompositionLocalOf<GameColors> { error("no theme") }
 
+/** The baker's chosen look, for scenes and portraits. */
+val LocalAvatar = androidx.compose.runtime.compositionLocalOf { com.surfswirl.bakery.game.Avatar() }
+
 fun Theme.colors() = GameColors(Color(bgTop), Color(bgBottom), Color(accent), Color(tileA), Color(tileB), Color(boardFrame), this)
 
 @Composable

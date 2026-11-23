@@ -82,8 +82,9 @@ data class Settings(
     val notifications: Boolean = true,
     /** "auto" follows the current seasonal event, or a theme id. */
     val theme: String = "auto",
-    /** Future: background music (see CLAUDE.md roadmap). */
     val music: Boolean = true,
+    /** The baker's look (hair, skin, outfit, glasses). */
+    val avatar: Avatar = Avatar(),
 )
 
 @Serializable

@@ -10,7 +10,9 @@
    "w": 1350,
    "h": 1175,
    "z": 0,
-   "show": "always"
+   "show": "always",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "sun",
@@ -20,7 +22,9 @@
    "w": 327,
    "h": 302,
    "z": 5,
-   "show": "done:c2_sun"
+   "show": "done:c2_sun",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "tulips",
@@ -30,7 +34,9 @@
    "w": 889,
    "h": 173,
    "z": 10,
-   "show": "done:c2_tulips"
+   "show": "done:c2_tulips",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "lanterns",
@@ -40,7 +46,9 @@
    "w": 878,
    "h": 223,
    "z": 12,
-   "show": "done:c2_candles"
+   "show": "done:c2_candles",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "balloons",
@@ -50,7 +58,9 @@
    "w": 224,
    "h": 332,
    "z": 14,
-   "show": "done:c2_balloons"
+   "show": "done:c2_balloons",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "party",
@@ -60,7 +70,9 @@
    "w": 1350,
    "h": 490,
    "z": 16,
-   "show": "done:c2_party"
+   "show": "done:c2_party",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "weeds",
@@ -70,7 +82,9 @@
    "w": 1193,
    "h": 459,
    "z": 20,
-   "show": "undone:c2_weeds"
+   "show": "undone:c2_weeds",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "towel",
@@ -80,7 +94,9 @@
    "w": 335,
    "h": 133,
    "z": 22,
-   "show": "done:c2_sun"
+   "show": "done:c2_sun",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "umbrella",
@@ -90,7 +106,9 @@
    "w": 454,
    "h": 588,
    "z": 30,
-   "show": "done:c2_umbrella"
+   "show": "done:c2_umbrella",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "table",
@@ -100,7 +118,9 @@
    "w": 522,
    "h": 278,
    "z": 32,
-   "show": "done:c2_tables"
+   "show": "done:c2_tables",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "bouquet",
@@ -110,17 +130,201 @@
    "w": 118,
    "h": 161,
    "z": 34,
-   "show": "done:c2_bouquet"
+   "show": "done:c2_bouquet",
+   "tint": "",
+   "variant": ""
   },
   {
-   "id": "mandy",
-   "file": "patio_mandy.webp",
-   "x": 229,
-   "y": 579,
-   "w": 262,
-   "h": 423,
+   "id": "mandy_legs",
+   "file": "patio_mandy_legs.webp",
+   "x": 258,
+   "y": 880,
+   "w": 146,
+   "h": 143,
    "z": 40,
-   "show": "always"
+   "show": "always",
+   "tint": "",
+   "variant": ""
+  },
+  {
+   "id": "mandy_hair_back_bob",
+   "file": "patio_mandy_hair_back_bob.webp",
+   "x": 253,
+   "y": 665,
+   "w": 156,
+   "h": 153,
+   "z": 40,
+   "show": "always",
+   "tint": "hair",
+   "variant": "bob"
+  },
+  {
+   "id": "mandy_hair_back_long",
+   "file": "patio_mandy_hair_back_long.webp",
+   "x": 245,
+   "y": 656,
+   "w": 173,
+   "h": 227,
+   "z": 40,
+   "show": "always",
+   "tint": "hair",
+   "variant": "long"
+  },
+  {
+   "id": "mandy_hair_back_ponytail",
+   "file": "patio_mandy_hair_back_ponytail.webp",
+   "x": 257,
+   "y": 663,
+   "w": 187,
+   "h": 183,
+   "z": 40,
+   "show": "always",
+   "tint": "hair",
+   "variant": "ponytail"
+  },
+  {
+   "id": "mandy_hair_back_curly",
+   "file": "patio_mandy_hair_back_curly.webp",
+   "x": 235,
+   "y": 646,
+   "w": 193,
+   "h": 187,
+   "z": 40,
+   "show": "always",
+   "tint": "hair",
+   "variant": "curly"
+  },
+  {
+   "id": "mandy_body",
+   "file": "patio_mandy_body.webp",
+   "x": 229,
+   "y": 708,
+   "w": 258,
+   "h": 254,
+   "z": 40,
+   "show": "always",
+   "tint": "",
+   "variant": ""
+  },
+  {
+   "id": "mandy_apron",
+   "file": "patio_mandy_apron.webp",
+   "x": 276,
+   "y": 791,
+   "w": 110,
+   "h": 146,
+   "z": 40,
+   "show": "always",
+   "tint": "outfit",
+   "variant": ""
+  },
+  {
+   "id": "mandy_hand",
+   "file": "patio_mandy_hand.webp",
+   "x": 435,
+   "y": 707,
+   "w": 40,
+   "h": 40,
+   "z": 40,
+   "show": "always",
+   "tint": "skin",
+   "variant": ""
+  },
+  {
+   "id": "mandy_skin",
+   "file": "patio_mandy_skin.webp",
+   "x": 278,
+   "y": 672,
+   "w": 106,
+   "h": 106,
+   "z": 40,
+   "show": "always",
+   "tint": "skin",
+   "variant": ""
+  },
+  {
+   "id": "mandy_hair_front_bob",
+   "file": "patio_mandy_hair_front_bob.webp",
+   "x": 278,
+   "y": 682,
+   "w": 108,
+   "h": 40,
+   "z": 40,
+   "show": "always",
+   "tint": "hair",
+   "variant": "bob"
+  },
+  {
+   "id": "mandy_hair_front_long",
+   "file": "patio_mandy_hair_front_long.webp",
+   "x": 278,
+   "y": 682,
+   "w": 108,
+   "h": 40,
+   "z": 40,
+   "show": "always",
+   "tint": "hair",
+   "variant": "long"
+  },
+  {
+   "id": "mandy_hair_front_ponytail",
+   "file": "patio_mandy_hair_front_ponytail.webp",
+   "x": 280,
+   "y": 679,
+   "w": 103,
+   "h": 36,
+   "z": 40,
+   "show": "always",
+   "tint": "hair",
+   "variant": "ponytail"
+  },
+  {
+   "id": "mandy_hair_front_curly",
+   "file": "patio_mandy_hair_front_curly.webp",
+   "x": 277,
+   "y": 680,
+   "w": 108,
+   "h": 40,
+   "z": 40,
+   "show": "always",
+   "tint": "hair",
+   "variant": "curly"
+  },
+  {
+   "id": "mandy_face",
+   "file": "patio_mandy_face.webp",
+   "x": 289,
+   "y": 719,
+   "w": 85,
+   "h": 39,
+   "z": 40,
+   "show": "always",
+   "tint": "",
+   "variant": ""
+  },
+  {
+   "id": "mandy_glasses",
+   "file": "patio_mandy_glasses.webp",
+   "x": 295,
+   "y": 711,
+   "w": 73,
+   "h": 35,
+   "z": 40,
+   "show": "always",
+   "tint": "",
+   "variant": "glasses"
+  },
+  {
+   "id": "mandy_hat",
+   "file": "patio_mandy_hat.webp",
+   "x": 271,
+   "y": 588,
+   "w": 121,
+   "h": 98,
+   "z": 40,
+   "show": "always",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "surf_sit",
@@ -130,7 +334,9 @@
    "w": 206,
    "h": 241,
    "z": 44,
-   "show": "undone:c2_sun"
+   "show": "undone:c2_sun",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "surf_towel",
@@ -140,7 +346,9 @@
    "w": 339,
    "h": 158,
    "z": 45,
-   "show": "done:c2_sun"
+   "show": "done:c2_sun",
+   "tint": "",
+   "variant": ""
   },
   {
    "id": "planters",
@@ -150,7 +358,9 @@
    "w": 1342,
    "h": 219,
    "z": 50,
-   "show": "done:c2_planters"
+   "show": "done:c2_planters",
+   "tint": "",
+   "variant": ""
   }
  ]
 }

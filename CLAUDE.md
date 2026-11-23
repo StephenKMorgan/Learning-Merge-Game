@@ -25,6 +25,11 @@ fully offline. In-game "purchases" are paid with brain puzzles instead of money.
 - `android/app/src/main/assets/scenes/` — the hand-drawn renovation scenes: `<scene>.json` lists each layer
   (position, z order, and when it shows: `always`, `done:<task>`, `undone:<task>`) plus the layer images.
   Rendered by `ui/screens/SceneView.kt` (tap a layer to replay its story; the explore view zooms). Also `assets/items/surf_face.webp` and `mandy_face.webp` (portraits).
+- Mandy is customizable (Settings → Your baker; `game/Looks.kt`, `Settings.avatar`). She is drawn in grey parts
+  (`common.MANDY_PARTS`: hair per style, skin, apron, face, glasses, hat); scene layers carry `tint` (hair/skin/outfit,
+  multiplied by her chosen colour) and `variant` (hair style or "glasses"). Her portrait is built the same way from
+  `assets/items/mandy/parts.json` (`MandyAvatar`; `ItemArt("mandy_face")` uses it). In scene files always add her
+  with `mandy_layers(...)` / `mandy_standing_layers(...)`, never a single flat image.
 - `tools/` — `prepare_art.py` (downloads Fluent emoji + converts to WebP), `make_cinnamon_art.py`,
   `make_sfx.py`, `make_icon.py`,
   `scenes/` (`make_scenes.py` renders the scene SVGs in `inside.py` / `patio.py` / `common.py` with Chromium).

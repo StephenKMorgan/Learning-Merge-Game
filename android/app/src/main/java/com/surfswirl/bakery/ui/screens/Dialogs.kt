@@ -116,7 +116,60 @@ fun DialogHost(vm: GameViewModel, state: GameState, ui: Ui, particles: Particles
                 }) { vm.closeDialog() }
                 Dialog.Storage -> StorageDialog(vm, state)
                 is Dialog.Visit -> {}
+                Dialog.Customize -> CustomizeDialog(vm, state)
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CustomizeDialog(vm: GameViewModel, state: GameState) {
+    val a = state.settings.avatar
+    Card(vm, "Your baker") {
+        com.surfswirl.bakery.ui.components.MandyAvatar(Modifier.size(150.dp).bob(2f), a)
+        Spacer(Modifier.height(8.dp))
+        Text("Hair style", style = MaterialTheme.typography.titleSmall)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            for ((id, name) in com.surfswirl.bakery.game.Looks.hairStyles) {
+                val sel = a.hairStyle == id
+                Column(Modifier.width(70.dp).clip(RoundedCornerShape(14.dp)).background(if (sel) Color(0xFFFFE08A) else Color(0xFFFFF1E2))
+                    .border(if (sel) 3.dp else 1.5.dp, if (sel) Palette.Orange else Color.White, RoundedCornerShape(14.dp))
+                    .semantics { contentDescription = "Hair $name" }.clickable { vm.updateAvatar { it.copy(hairStyle = id) } }
+                    .padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    com.surfswirl.bakery.ui.components.MandyAvatar(Modifier.size(56.dp), a.copy(hairStyle = id))
+                    Text(name, style = MaterialTheme.typography.labelSmall)
+                }
+            }
+        }
+        Swatches("Hair color", com.surfswirl.bakery.game.Looks.hairColors, a.hair) { c -> vm.updateAvatar { it.copy(hair = c) } }
+        Swatches("Skin tone", com.surfswirl.bakery.game.Looks.skinTones, a.skin) { c -> vm.updateAvatar { it.copy(skin = c) } }
+        Swatches("Apron", com.surfswirl.bakery.game.Looks.outfits, a.outfit) { c -> vm.updateAvatar { it.copy(outfit = c) } }
+        Spacer(Modifier.height(6.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            CandyButton(if (a.glasses) "Glasses: on" else "Glasses: off", Modifier.weight(1f), small = true,
+                color = Palette.Blue, dark = Palette.BlueDark) { vm.updateAvatar { it.copy(glasses = !it.glasses) } }
+            CandyButton("Original", Modifier.weight(1f), small = true, color = Palette.Gray, dark = Palette.GrayDark) {
+                vm.updateAvatar { com.surfswirl.bakery.game.Avatar() }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        CandyButton("Done", Modifier.fillMaxWidth()) { vm.closeDialog() }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun Swatches(title: String, colors: List<Long>, selected: Long, onPick: (Long) -> Unit) {
+    Spacer(Modifier.height(8.dp))
+    Text(title, style = MaterialTheme.typography.titleSmall)
+    Spacer(Modifier.height(4.dp))
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        colors.forEachIndexed { i, c ->
+            val sel = c == selected
+            Box(Modifier.size(if (sel) 40.dp else 34.dp).clip(CircleShape).background(Color(c))
+                .border(if (sel) 4.dp else 2.dp, if (sel) Palette.Green else Color.White, CircleShape)
+                .semantics { contentDescription = "$title ${i + 1}" }.clickable { onPick(c) })
         }
     }
 }

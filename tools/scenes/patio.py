@@ -179,7 +179,7 @@ def layers():
         ("umbrella", 30, "done:c2_umbrella", umbrella()),
         ("table", 32, "done:c2_tables", table()),
         ("bouquet", 34, "done:c2_bouquet", bouquet()),
-        ("mandy", 40, "always", mandy_standing(265, 790, 0.7)),
+        *mandy_standing_layers("mandy", 40, "always", 265, 790, 0.7),
         ("surf_sit", 44, "undone:c2_sun", surf_sitting(860, 830, 0.55)),
         ("surf_towel", 45, "done:c2_sun", surf_lying(735, 860, 0.62)),
         ("planters", 50, "done:c2_planters", planters()),

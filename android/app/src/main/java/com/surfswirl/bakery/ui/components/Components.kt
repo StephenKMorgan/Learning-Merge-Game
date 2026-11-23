@@ -84,8 +84,35 @@ object Art {
 
 private val grayMatrix = ColorMatrix().apply { setToSaturation(0f) }
 
+/** Mandy's portrait, built from her parts in her chosen colours (assets/items/mandy/parts.json). */
+object MandyParts {
+    @kotlinx.serialization.Serializable
+    data class Part(val file: String, val tint: String = "", val variant: String = "")
+    private var parts: List<Part>? = null
+    fun get(context: Context): List<Part> = parts ?: runCatching {
+        kotlinx.serialization.json.Json { ignoreUnknownKeys = true }.decodeFromString(
+            kotlinx.serialization.builtins.ListSerializer(Part.serializer()),
+            context.assets.open("items/mandy/parts.json").bufferedReader().readText())
+    }.getOrDefault(emptyList()).also { parts = it }
+}
+
+@Composable
+fun MandyAvatar(modifier: Modifier = Modifier, avatar: com.surfswirl.bakery.game.Avatar = com.surfswirl.bakery.ui.theme.LocalAvatar.current, alpha: Float = 1f) {
+    val ctx = LocalContext.current
+    val parts = remember { MandyParts.get(ctx) }
+    Box(modifier) {
+        for (p in parts) {
+            if (!avatar.shows(p.variant)) continue
+            val img = remember(p.file) { Art.get(ctx, "mandy/" + p.file.removeSuffix(".webp")) } ?: continue
+            Image(img, contentDescription = null, modifier = Modifier.matchParentSize(), alpha = alpha,
+                colorFilter = avatar.tint(p.tint)?.let { ColorFilter.tint(Color(it), androidx.compose.ui.graphics.BlendMode.Modulate) })
+        }
+    }
+}
+
 @Composable
 fun ItemArt(art: String, modifier: Modifier = Modifier, alpha: Float = 1f, gray: Boolean = false, silhouette: Boolean = false) {
+    if (art == "mandy_face" && !gray && !silhouette) { MandyAvatar(modifier, alpha = alpha); return }
     val ctx = LocalContext.current
     val img = remember(art) { Art.get(ctx, art) }
     if (img != null) {

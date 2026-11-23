@@ -100,6 +100,7 @@ fun App(vm: GameViewModel) {
         }
     }
 
+    androidx.compose.runtime.CompositionLocalProvider(com.surfswirl.bakery.ui.theme.LocalAvatar provides state.settings.avatar) {
     BakeryTheme(theme) {
         val c = LocalGameColors.current
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(c.bgTop, c.bgBottom)))) {
@@ -122,6 +123,7 @@ fun App(vm: GameViewModel) {
             ParticleLayer(particles)
             Toast(ui.toast, ui.toastId)
         }
+    }
     }
 }
 

@@ -18,6 +18,7 @@ DEFS = """
   <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="0.5" stop-color="#e3a93a"/><stop offset="1" stop-color="#a8701c"/></linearGradient>
   <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/><stop offset="0.5" stop-color="#d8f1ff" stop-opacity="0.18"/><stop offset="1" stop-color="#ffffff" stop-opacity="0.4"/></linearGradient>
   <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd9bd"/><stop offset="1" stop-color="#f3bb96"/></linearGradient>
+  <linearGradient id="skinGray" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#ebebeb"/></linearGradient>
   <linearGradient id="roll" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9a565"/><stop offset="1" stop-color="#b86e34"/></linearGradient>
   <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd3ff"/><stop offset="1" stop-color="#e6f7ff"/></linearGradient>
 </defs>
@@ -46,52 +47,105 @@ def cinnamon_roll(x, y, r, iced=True):
             + ice)
 
 # ---------------------------------------------------------------- Mandy
+#
+# Mandy is drawn in parts so the app can recolour her (Settings -> Your baker). Tintable parts are drawn in
+# greys; the app multiplies them by the chosen colour. Order (back to front) matters.
 
-def mandy_bust(cx, cy, s=1.0, wave=True):
-    """Mandy from the waist up, centred on her face at (cx, cy). s = scale (face radius 58*s)."""
-    def S(v): return v * s
-    arm = ""
-    if wave:
-        arm = (f'<path d="M{cx + S(70)},{cy + S(120)} q{S(60)},{-S(30)} {S(70)},{-S(110)}" stroke="#ffffff" stroke-width="{S(34)}" fill="none" stroke-linecap="round"/>'
-               f'<circle cx="{cx + S(142)}" cy="{cy + S(2)}" r="{S(20)}" fill="url(#skin)"/>')
-    return f'''
-    <g filter="url(#shadow)">
-      <!-- body: chef jacket -->
-      <path d="M{cx - S(95)},{cy + S(240)} Q{cx - S(100)},{cy + S(95)} {cx},{cy + S(85)} Q{cx + S(100)},{cy + S(95)} {cx + S(95)},{cy + S(240)} Z" fill="#ffffff"/>
-      <path d="M{cx - S(60)},{cy + S(240)} L{cx - S(50)},{cy + S(140)} L{cx + S(50)},{cy + S(140)} L{cx + S(60)},{cy + S(240)} Z" fill="#ff8fb5"/>
-      <path d="M{cx - S(50)},{cy + S(140)} L{cx + S(50)},{cy + S(140)}" stroke="#e86a98" stroke-width="{S(6)}"/>
-      <circle cx="{cx - S(22)}" cy="{cy + S(118)}" r="{S(5)}" fill="#e8d6c8"/><circle cx="{cx + S(22)}" cy="{cy + S(118)}" r="{S(5)}" fill="#e8d6c8"/>
-      <!-- neckerchief -->
-      <path d="M{cx - S(30)},{cy + S(78)} L{cx},{cy + S(112)} L{cx + S(30)},{cy + S(78)} Z" fill="#ff5f8f"/>
-      {arm}
-      <!-- hair behind -->
-      <ellipse cx="{cx}" cy="{cy + S(10)}" rx="{S(68)}" ry="{S(66)}" fill="#7a4630"/>
-      <!-- face -->
-      <circle cx="{cx}" cy="{cy}" r="{S(58)}" fill="url(#skin)"/>
-      <path d="M{cx - S(58)},{cy - S(8)} Q{cx - S(40)},{cy - S(52)} {cx + S(4)},{cy - S(46)} Q{cx + S(46)},{cy - S(50)} {cx + S(60)},{cy - S(6)} Q{cx + S(30)},{cy - S(34)} {cx - S(2)},{cy - S(26)} Q{cx - S(34)},{cy - S(30)} {cx - S(58)},{cy - S(8)} Z" fill="#8a5038"/>
-      <ellipse cx="{cx - S(22)}" cy="{cy + S(4)}" rx="{S(6)}" ry="{S(8)}" fill="#3b2216"/>
-      <ellipse cx="{cx + S(22)}" cy="{cy + S(4)}" rx="{S(6)}" ry="{S(8)}" fill="#3b2216"/>
-      <circle cx="{cx - S(20)}" cy="{cy + S(1)}" r="{S(2)}" fill="#fff"/><circle cx="{cx + S(24)}" cy="{cy + S(1)}" r="{S(2)}" fill="#fff"/>
-      <ellipse cx="{cx - S(36)}" cy="{cy + S(22)}" rx="{S(10)}" ry="{S(6)}" fill="#ff9aa8" opacity="0.6"/>
-      <ellipse cx="{cx + S(36)}" cy="{cy + S(22)}" rx="{S(10)}" ry="{S(6)}" fill="#ff9aa8" opacity="0.6"/>
-      <path d="M{cx - S(14)},{cy + S(26)} Q{cx},{cy + S(40)} {cx + S(14)},{cy + S(26)}" stroke="#b5533c" stroke-width="{S(4)}" fill="none" stroke-linecap="round"/>
-      <!-- chef hat -->
-      <rect x="{cx - S(52)}" y="{cy - S(78)}" width="{S(104)}" height="{S(30)}" rx="{S(8)}" fill="#ffffff" stroke="#efe6dc" stroke-width="{S(2)}"/>
-      <circle cx="{cx - S(36)}" cy="{cy - S(98)}" r="{S(30)}" fill="#ffffff"/>
-      <circle cx="{cx + S(36)}" cy="{cy - S(98)}" r="{S(30)}" fill="#ffffff"/>
-      <circle cx="{cx}" cy="{cy - S(116)}" r="{S(38)}" fill="#ffffff"/>
-      <path d="M{cx - S(30)},{cy - S(100)} q{S(10)},{-S(14)} {S(24)},{-S(10)}" stroke="#efe6dc" stroke-width="{S(3)}" fill="none"/>
-    </g>'''
+HAIR_STYLES = ["bob", "long", "ponytail", "curly"]
+# (part, tint, variant) back to front; variant "style" = one layer per hair style
+MANDY_PARTS = [("hair_back", "hair", "style"), ("body", "", ""), ("apron", "outfit", ""), ("hand", "skin", ""),
+               ("skin", "skin", ""), ("hair_front", "hair", "style"), ("face", "", ""), ("glasses", "", "glasses"), ("hat", "", "")]
+# Default colours (what the greys are multiplied by unless she changes them)
+DEFAULT_TINT = {"hair": "#7a4630", "skin": "#ffd9bd", "outfit": "#ff8fb5"}
 
-def mandy_standing(cx, feet, s=1.0):
+def _hair_back(style, cx, cy, S):
+    if style == "long":
+        return f'<path d="M{cx - S(70)},{cy - S(10)} Q{cx - S(72)},{cy - S(66)} {cx},{cy - S(66)} Q{cx + S(72)},{cy - S(66)} {cx + S(70)},{cy - S(10)} L{cx + S(78)},{cy + S(140)} Q{cx},{cy + S(160)} {cx - S(78)},{cy + S(140)} Z" fill="#e2e2e2"/>'
+    if style == "ponytail":
+        return (f'<ellipse cx="{cx}" cy="{cy + S(4)}" rx="{S(64)}" ry="{S(62)}" fill="#e2e2e2"/>'
+                f'<ellipse cx="{cx + S(78)}" cy="{cy + S(50)}" rx="{S(24)}" ry="{S(62)}" fill="#e2e2e2" transform="rotate(-18 {cx + S(78)} {cy + S(50)})"/>'
+                f'<circle cx="{cx + S(64)}" cy="{cy - S(8)}" r="{S(10)}" fill="#ff8fb5"/>')
+    if style == "curly":
+        return "".join(f'<circle cx="{cx + S(64) * __import__("math").cos(a):.1f}" cy="{cy + S(8) + S(60) * __import__("math").sin(a):.1f}" r="{S(26)}" fill="#e2e2e2"/>'
+                       for a in [i * 0.5236 for i in range(12)]) + f'<circle cx="{cx}" cy="{cy + S(8)}" r="{S(62)}" fill="#e2e2e2"/>'
+    return f'<ellipse cx="{cx}" cy="{cy + S(10)}" rx="{S(68)}" ry="{S(66)}" fill="#e2e2e2"/>'   # bob
+
+def _hair_front(style, cx, cy, S):
+    if style == "ponytail":
+        return f'<path d="M{cx - S(56)},{cy - S(14)} Q{cx - S(50)},{cy - S(52)} {cx},{cy - S(50)} Q{cx + S(50)},{cy - S(52)} {cx + S(56)},{cy - S(14)} Q{cx + S(30)},{cy - S(30)} {cx},{cy - S(28)} Q{cx - S(30)},{cy - S(30)} {cx - S(56)},{cy - S(14)} Z" fill="#ffffff"/>'
+    if style == "curly":
+        return "".join(f'<circle cx="{cx + dx * S(1)}" cy="{cy - S(34) + abs(dx) * S(0.25)}" r="{S(15)}" fill="#ffffff"/>' for dx in (-44, -22, 0, 22, 44))
+    return f'<path d="M{cx - S(58)},{cy - S(8)} Q{cx - S(40)},{cy - S(52)} {cx + S(4)},{cy - S(46)} Q{cx + S(46)},{cy - S(50)} {cx + S(60)},{cy - S(6)} Q{cx + S(30)},{cy - S(34)} {cx - S(2)},{cy - S(26)} Q{cx - S(34)},{cy - S(30)} {cx - S(58)},{cy - S(8)} Z" fill="#ffffff"/>'
+
+def mandy_part(part, cx, cy, s=1.0, wave=True, style="bob"):
+    """One part of Mandy from the waist up, centred on her face at (cx, cy)."""
     def S(v): return v * s
-    top = feet - S(420)
+    if part == "hair_back": return _hair_back(style, cx, cy, S)
+    if part == "hair_front": return _hair_front(style, cx, cy, S)
+    if part == "body":
+        arm = f'<path d="M{cx + S(70)},{cy + S(120)} q{S(60)},{-S(30)} {S(70)},{-S(110)}" stroke="#ffffff" stroke-width="{S(34)}" fill="none" stroke-linecap="round"/>' if wave else ""
+        return (f'<path d="M{cx - S(95)},{cy + S(240)} Q{cx - S(100)},{cy + S(95)} {cx},{cy + S(85)} Q{cx + S(100)},{cy + S(95)} {cx + S(95)},{cy + S(240)} Z" fill="#ffffff"/>'
+                f'<circle cx="{cx - S(22)}" cy="{cy + S(118)}" r="{S(5)}" fill="#e8d6c8"/><circle cx="{cx + S(22)}" cy="{cy + S(118)}" r="{S(5)}" fill="#e8d6c8"/>' + arm)
+    if part == "apron":
+        return (f'<path d="M{cx - S(60)},{cy + S(240)} L{cx - S(50)},{cy + S(140)} L{cx + S(50)},{cy + S(140)} L{cx + S(60)},{cy + S(240)} Z" fill="#ffffff"/>'
+                f'<path d="M{cx - S(50)},{cy + S(140)} L{cx + S(50)},{cy + S(140)}" stroke="#d6d6d6" stroke-width="{S(6)}"/>'
+                f'<path d="M{cx - S(30)},{cy + S(78)} L{cx},{cy + S(112)} L{cx + S(30)},{cy + S(78)} Z" fill="#e8e8e8"/>')
+    if part == "hand":
+        return f'<circle cx="{cx + S(142)}" cy="{cy + S(2)}" r="{S(20)}" fill="#f0f0f0"/>' if wave else ""
+    if part == "skin":
+        return f'<circle cx="{cx}" cy="{cy}" r="{S(58)}" fill="url(#skinGray)"/>'
+    if part == "face":
+        return (f'<ellipse cx="{cx - S(22)}" cy="{cy + S(4)}" rx="{S(6)}" ry="{S(8)}" fill="#3b2216"/>'
+                f'<ellipse cx="{cx + S(22)}" cy="{cy + S(4)}" rx="{S(6)}" ry="{S(8)}" fill="#3b2216"/>'
+                f'<circle cx="{cx - S(20)}" cy="{cy + S(1)}" r="{S(2)}" fill="#fff"/><circle cx="{cx + S(24)}" cy="{cy + S(1)}" r="{S(2)}" fill="#fff"/>'
+                f'<ellipse cx="{cx - S(36)}" cy="{cy + S(22)}" rx="{S(10)}" ry="{S(6)}" fill="#ff7a8f" opacity="0.4"/>'
+                f'<ellipse cx="{cx + S(36)}" cy="{cy + S(22)}" rx="{S(10)}" ry="{S(6)}" fill="#ff7a8f" opacity="0.4"/>'
+                f'<path d="M{cx - S(14)},{cy + S(26)} Q{cx},{cy + S(40)} {cx + S(14)},{cy + S(26)}" stroke="#b5533c" stroke-width="{S(4)}" fill="none" stroke-linecap="round"/>')
+    if part == "glasses":
+        return (f'<circle cx="{cx - S(22)}" cy="{cy + S(4)}" r="{S(15)}" fill="#ffffff" fill-opacity="0.15" stroke="#5b3220" stroke-width="{S(3.5)}"/>'
+                f'<circle cx="{cx + S(22)}" cy="{cy + S(4)}" r="{S(15)}" fill="#ffffff" fill-opacity="0.15" stroke="#5b3220" stroke-width="{S(3.5)}"/>'
+                f'<path d="M{cx - S(7)},{cy + S(2)} q{S(7)},{-S(5)} {S(14)},0" stroke="#5b3220" stroke-width="{S(3)}" fill="none"/>')
+    if part == "hat":
+        return (f'<rect x="{cx - S(52)}" y="{cy - S(78)}" width="{S(104)}" height="{S(30)}" rx="{S(8)}" fill="#ffffff" stroke="#efe6dc" stroke-width="{S(2)}"/>'
+                f'<circle cx="{cx - S(36)}" cy="{cy - S(98)}" r="{S(30)}" fill="#ffffff"/>'
+                f'<circle cx="{cx + S(36)}" cy="{cy - S(98)}" r="{S(30)}" fill="#ffffff"/>'
+                f'<circle cx="{cx}" cy="{cy - S(116)}" r="{S(38)}" fill="#ffffff"/>'
+                f'<path d="M{cx - S(30)},{cy - S(100)} q{S(10)},{-S(14)} {S(24)},{-S(10)}" stroke="#efe6dc" stroke-width="{S(3)}" fill="none"/>')
+    return ""
+
+def mandy_legs(cx, feet, s=1.0):
+    def S(v): return v * s
     return (f'<ellipse cx="{cx}" cy="{feet}" rx="{S(70)}" ry="{S(14)}" fill="#5b3220" opacity="0.18"/>'
             f'<rect x="{cx - S(40)}" y="{feet - S(110)}" width="{S(28)}" height="{S(105)}" rx="{S(12)}" fill="#6a4a3a"/>'
             f'<rect x="{cx + S(12)}" y="{feet - S(110)}" width="{S(28)}" height="{S(105)}" rx="{S(12)}" fill="#6a4a3a"/>'
             f'<ellipse cx="{cx - S(28)}" cy="{feet - S(4)}" rx="{S(22)}" ry="{S(10)}" fill="#4a2c20"/>'
-            f'<ellipse cx="{cx + S(28)}" cy="{feet - S(4)}" rx="{S(22)}" ry="{S(10)}" fill="#4a2c20"/>'
-            + mandy_bust(cx, top + S(120), s))
+            f'<ellipse cx="{cx + S(28)}" cy="{feet - S(4)}" rx="{S(22)}" ry="{S(10)}" fill="#4a2c20"/>')
+
+def mandy_layers(prefix, z, show, cx, cy, s=1.0, wave=True, legs_feet=None):
+    """Scene layers for Mandy: (id, z, show, svg, tint, variant). legs_feet: draw standing legs to this y."""
+    out = []
+    if legs_feet is not None:
+        out.append((f"{prefix}_legs", z, show, f'<g filter="url(#shadow)">{mandy_legs(cx, legs_feet, s)}</g>', "", ""))
+    for part, tint, variant in MANDY_PARTS:
+        styles = HAIR_STYLES if variant == "style" else [None]
+        for st in styles:
+            body = mandy_part(part, cx, cy, s, wave, st or "bob")
+            if not body: continue
+            lid = f"{prefix}_{part}" + (f"_{st}" if st else "")
+            var = st if st else ("glasses" if variant == "glasses" else "")
+            filt = ' filter="url(#shadow)"' if part in ("hair_back", "body") else ""
+            out.append((lid, z, show, f'<g{filt}>{body}</g>', tint, var))
+    return out
+
+def mandy_bust(cx, cy, s=1.0, wave=True):
+    """Full-colour Mandy (default look), for previews only."""
+    return "".join(mandy_part(p, cx, cy, s, wave) for p, _, v in MANDY_PARTS if v != "glasses")
+
+def mandy_standing(cx, feet, s=1.0):
+    return mandy_legs(cx, feet, s) + mandy_bust(cx, feet - s * 420 + s * 120, s)
+
+def mandy_standing_layers(prefix, z, show, cx, feet, s=1.0):
+    return mandy_layers(prefix, z, show, cx, feet - s * 420 + s * 120, s, True, legs_feet=feet)
 
 # ---------------------------------------------------------------- Surf the golden retriever
 
@@ -171,5 +225,6 @@ def surf_portrait():
     return svg(f'<g filter="url(#shadow)">{surf_head(128, 108, 1.15)}</g>'
                f'<path d="M58,214 Q128,250 198,214 L190,240 Q128,262 66,240 Z" fill="#3fa7f5" opacity="0"/>', 256, 256)
 
-def mandy_portrait():
-    return svg(f'{mandy_bust(128, 150, 0.9, wave=False)}', 256, 256)
+def mandy_portrait_parts():
+    """(name, svg) per part for the 256px portrait, drawn at the same spot so they stack."""
+    return [(lid, svg(f'<g>{body}</g>', 256, 256), tint, var) for (lid, _, _, body, tint, var) in mandy_layers("p", 0, "always", 128, 150, 0.9, wave=False)]

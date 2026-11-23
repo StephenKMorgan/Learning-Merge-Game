@@ -280,7 +280,7 @@ def layers():
         ("clock", 10, "done:c1_clock", clock()),
         ("broom", 12, "done:c1_sweep", broom()),
         ("lights", 15, "done:c1_lights", lights()),
-        ("mandy", 20, "always", mandy()),
+        *mandy_layers("mandy", 20, "always", 625, 352, 0.74, wave=False),
         ("counter", 30, "always", counter()),
         ("display", 35, "done:c1_display", display_case()),
         ("bell", 36, "done:c1_bell", bell()),

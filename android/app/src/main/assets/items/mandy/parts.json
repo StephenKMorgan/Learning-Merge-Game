@@ -1,0 +1,72 @@
+[
+ {
+  "file": "p_hair_back_bob.webp",
+  "tint": "hair",
+  "variant": "bob"
+ },
+ {
+  "file": "p_hair_back_long.webp",
+  "tint": "hair",
+  "variant": "long"
+ },
+ {
+  "file": "p_hair_back_ponytail.webp",
+  "tint": "hair",
+  "variant": "ponytail"
+ },
+ {
+  "file": "p_hair_back_curly.webp",
+  "tint": "hair",
+  "variant": "curly"
+ },
+ {
+  "file": "p_body.webp",
+  "tint": "",
+  "variant": ""
+ },
+ {
+  "file": "p_apron.webp",
+  "tint": "outfit",
+  "variant": ""
+ },
+ {
+  "file": "p_skin.webp",
+  "tint": "skin",
+  "variant": ""
+ },
+ {
+  "file": "p_hair_front_bob.webp",
+  "tint": "hair",
+  "variant": "bob"
+ },
+ {
+  "file": "p_hair_front_long.webp",
+  "tint": "hair",
+  "variant": "long"
+ },
+ {
+  "file": "p_hair_front_ponytail.webp",
+  "tint": "hair",
+  "variant": "ponytail"
+ },
+ {
+  "file": "p_hair_front_curly.webp",
+  "tint": "hair",
+  "variant": "curly"
+ },
+ {
+  "file": "p_face.webp",
+  "tint": "",
+  "variant": ""
+ },
+ {
+  "file": "p_glasses.webp",
+  "tint": "",
+  "variant": "glasses"
+ },
+ {
+  "file": "p_hat.webp",
+  "tint": "",
+  "variant": ""
+ }
+]

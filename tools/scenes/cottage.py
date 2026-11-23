@@ -144,7 +144,7 @@ def layers():
         ("tree", 10, "done:frosty_3", tree()),
         ("tree_decor", 11, "done:frosty_4", tree_decor()),
         ("presents", 12, "done:frosty_8", presents()),
-        ("mandy", 20, "always", mandy_standing(800, 640, 0.6)),
+        *mandy_standing_layers("mandy", 20, "always", 800, 640, 0.6),
         ("cocoa", 30, "done:frosty_7", cocoa()),
         ("surf_rug", 40, "always", surf_lying(surf_x, surf_y, surf_s)),
         ("surf_hat", 41, "done:frosty_10", f'<g filter="url(#shadow)">{santa_hat(head_x, head_y - 38 * surf_s, surf_s * 0.9)}</g>'),
