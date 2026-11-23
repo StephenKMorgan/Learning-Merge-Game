@@ -96,6 +96,10 @@ Everyday CI builds are version "dev" (versionCode 1) and are only for testing.
 
 ## Roadmap / future updates
 
+The release plan (batches timed before each seasonal event, chapter outline, pacing, per-release checklist) is in
+`ROADMAP.md`. Follow it and update it when a batch ships.
+
+
 - More music styles and instruments (each event already has its own style).
 - Optional: hand-drawn board items to match the scenes (the Fluent 3D emoji currently look richer on small tiles).
 - Chapter 4 and more story; event stories for the other seasonal events (Harvest, Sweetheart, Spring, Summer, Spooky).
