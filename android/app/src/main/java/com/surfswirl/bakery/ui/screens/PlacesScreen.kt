@@ -28,6 +28,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -81,7 +85,8 @@ fun placeHasNews(p: Story.Place, state: GameState, today: java.time.LocalDate): 
 
 object MapData {
     @kotlinx.serialization.Serializable
-    data class Map(val w: Int, val h: Int, val spots: kotlin.collections.Map<String, List<Int>>)
+    data class Map(val w: Int, val h: Int, val spots: kotlin.collections.Map<String, List<Int>>,
+                   val reveal: kotlin.collections.Map<String, Int> = emptyMap())
     private var map: Map? = null
     fun get(ctx: android.content.Context): Map? = map ?: runCatching {
         kotlinx.serialization.json.Json { ignoreUnknownKeys = true }.decodeFromString(Map.serializer(),
@@ -113,9 +118,20 @@ fun BakeryScreen(vm: GameViewModel, state: GameState) {
                 val y = (map.spots[current]?.get(1) ?: 0) * k
                 scroll.scrollTo((y - viewport / 2f).toInt().coerceAtLeast(0))
             }
-            Box(Modifier.fillMaxSize().background(Color(0xFF5CC3E8)).verticalScroll(scroll)) {
+            // Past the bottom of the map (tall screens) the cloud bank just carries on.
+            Box(Modifier.fillMaxSize().background(Color(0xFFE6EDF2)).verticalScroll(scroll)) {
+              Box(Modifier.fillMaxWidth().aspectRatio(map.w / map.h.toFloat()).clipToBounds()) {
                 androidx.compose.foundation.Image(img, contentDescription = "Map of Maple Lane",
                     modifier = Modifier.fillMaxWidth().aspectRatio(map.w / map.h.toFloat()))
+                // Fog of war: one cloud layer over the whole town, with soft clearings cut around open places.
+                val openIds = Story.locations.filter { openPlaces(it, state, today).isNotEmpty() }.map { it.id }
+                val fog = androidx.compose.runtime.remember(openIds) { fogWithClearings(ctx, map, openIds) }
+                val drift = androidx.compose.animation.core.rememberInfiniteTransition(label = "fog")
+                val dx by drift.animateFloat(initialValue = -12f, targetValue = 12f, animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+                    androidx.compose.animation.core.tween(16000), androidx.compose.animation.core.RepeatMode.Reverse), label = "dx")
+                if (fog != null) androidx.compose.foundation.Image(fog, contentDescription = null,
+                    contentScale = androidx.compose.ui.layout.ContentScale.FillBounds, alpha = 0.9f,
+                    modifier = Modifier.matchParentSize().graphicsLayer { scaleX = 1.05f; scaleY = 1.02f; translationX = dx * k })
                 for (loc in Story.locations) {
                     val spot = map.spots[loc.id] ?: continue
                     val open = openPlaces(loc, state, today)
@@ -125,9 +141,29 @@ fun BakeryScreen(vm: GameViewModel, state: GameState) {
                     if (open.isEmpty()) LockedSpot(loc, cx, cy) { vm.toast("${loc.name}: ${loc.teaser}") }
                     else MapPin(loc, cx, cy, news, loc.id == current) { vm.pushDialog(Dialog.Location(loc.id)) }
                 }
+              }
             }
         }
     }
+}
+
+/** The fog image with a soft hole cut around each open location (done once per set of open places). */
+private fun fogWithClearings(ctx: android.content.Context, map: MapData.Map, open: List<String>): androidx.compose.ui.graphics.ImageBitmap? {
+    val src = Scenes.image(ctx, "fog.webp") ?: return null
+    val bmp = src.asAndroidBitmap().copy(android.graphics.Bitmap.Config.ARGB_8888, true)
+    val c = android.graphics.Canvas(bmp)
+    val f = bmp.width / map.w.toFloat()
+    for (id in open) {
+        val spot = map.spots[id] ?: continue
+        val x = spot[0] * f; val y = spot[1] * f; val r = (map.reveal[id] ?: 250) * f
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            shader = android.graphics.RadialGradient(x, y, r, intArrayOf(0xFF000000.toInt(), 0xFF000000.toInt(), 0x00000000),
+                floatArrayOf(0f, 0.5f, 1f), android.graphics.Shader.TileMode.CLAMP)
+            xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.DST_OUT)
+        }
+        c.drawCircle(x, y, r, paint)
+    }
+    return bmp.asImageBitmap()
 }
 
 @Composable
@@ -148,19 +184,13 @@ private fun MapPin(loc: Story.Location, cx: androidx.compose.ui.unit.Dp, cy: and
 
 @Composable
 private fun LockedSpot(loc: Story.Location, cx: androidx.compose.ui.unit.Dp, cy: androidx.compose.ui.unit.Dp, onClick: () -> Unit) {
-    Box(Modifier.offset(cx - 80.dp, cy - 90.dp).size(160.dp, 120.dp).semantics { contentDescription = "Locked ${loc.name}" }.clickable(onClick = onClick),
-        contentAlignment = Alignment.Center) {
-        androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
-            val c = Color(0xEEFFFFFF)
-            val w = size.width; val h = size.height
-            for ((fx, fy, fr) in listOf(Triple(0.3f, 0.55f, 0.24f), Triple(0.55f, 0.42f, 0.3f), Triple(0.75f, 0.58f, 0.22f), Triple(0.45f, 0.65f, 0.25f), Triple(0.2f, 0.68f, 0.16f)))
-                drawCircle(c, fr * w, androidx.compose.ui.geometry.Offset(fx * w, fy * h))
-        }
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 18.dp)) {
-            ItemArt("locked", Modifier.size(22.dp))
-            Text(loc.teaser, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center, color = Palette.CocoaSoft,
-                modifier = Modifier.width(120.dp))
-        }
+    // A small label floating on the fog: you can't see the place yet, only a hint of what's coming.
+    Row(Modifier.offset(cx - 80.dp, cy - 18.dp).width(160.dp).semantics { contentDescription = "Locked ${loc.name}" }
+        .clickable(onClick = onClick).clip(RoundedCornerShape(50)).background(Color(0xCCFFFFFF))
+        .border(1.5.dp, Color(0x66A0AEC0), RoundedCornerShape(50)).padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+        ItemArt("locked", Modifier.size(16.dp)); Spacer(Modifier.width(4.dp))
+        Text(loc.teaser, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center, color = Palette.CocoaSoft, maxLines = 2)
     }
 }
 
