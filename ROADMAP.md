@@ -31,6 +31,9 @@ Event dates are fixed in `Events.kt`. "Ship by" leaves ~10 days of slack before 
 From 1.4.0 each release carries **two chapters**: one open right away and one that opens on a date (`Chapter.opens`).
 Map locations for every planned place already exist (under clouds), so a release just fills one in.
 
+**A second map (idea, after 1.9.0):** Maple Bay Harbour is already on the map (under fog). Later, Mandy earns a
+ferry ticket (e.g. finishing a chapter arc or a big event) and sails to a new map with its own places and chapters.
+
 Gaps (Feb 15–Mar 20, May–June, Aug 15–Oct 1) are where **weekly mini-events** (planned for 1.5.0+) keep things
 fresh without a release.
 
@@ -77,3 +80,5 @@ Check how far she is on the map before each release to tune costs.
   event stories, customizable character and name (done 1.2.0).
 - 2026-11: wanted a map instead of a row of places, a parts library for cheaper levels, and a board that changes
   with chapters (the packing boxes were gone fast). All in 1.3.0.
+- 2026-11 (1.3.0 testing): map felt kiddie/sparse with odd cloud blobs → detailed storybook map, merged fog of war,
+  layout checker, animations, seasons and time of day, a harbour pin for a future ferry to a new map.

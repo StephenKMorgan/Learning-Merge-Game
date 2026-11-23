@@ -43,12 +43,13 @@ fully offline. In-game "purchases" are paid with brain puzzles instead of money.
   props in `docs/kit-catalog.png` (regenerate with `python3 tools/scenes/kit.py docs`). Add new props to `PROPS`.
 - **Map & places**: `Story.locations` (map pins; ids match `map.py` spots) each hold `Story.places` (a chapter's or
   event's scene). Locations with nothing open stay under the fog (`fog.webp`, clearings cut per `map.json` `reveal`)
-  with their `teaser`. In `map.py` place everything through the `Layout` checker (`put_house`, `L.solid(...)`,
-  `forest()`/`put_tree` only use free ground): the build fails on overlaps, buildings in water or on roads.
-  Moving things (smoke, water sparkles, Ferris wheel, windmill, boats, lighthouse, fountain, birds) are positions in
-  `map.json` `anims`, drawn by `ui/screens/MapLife.kt`. `MapPreviewTest` renders the whole map with no fog to
-  `build/screenshots/map-life.png`. `ui/screens/PlacesScreen.kt`
-  has the map (`BakeryScreen`), the location card and `PlaceScreen`.
+  with their `teaser`. `map.py` renders one map per season (`map_<season>.webp`, colours in `SEASONS`; the app picks
+  by month, `MapTime`) and the app adds the time of day (`MapNight`: dawn, golden hour, dusk, night with lit windows,
+  lamps, stars). Place everything through the `Layout` checker (`put_house`, `L.solid(...)`; `forest()`/`put_tree`
+  only use free ground): the build fails on overlaps, buildings in water or on roads. Moving things (smoke, sparkles,
+  Ferris wheel, windmill, boats, ferry, lighthouse, fountain, birds) come from `map.json` `anims`, drawn in
+  `ui/screens/MapLife.kt`. `MapPreviewTest` renders the whole map without fog per season/time to `build/screenshots/`.
+  `PlacesScreen.kt` has the map (`BakeryScreen`), the location card and `PlaceScreen`.
 - **Board obstacles** (`game/Obstacles.kt`): each new chapter lays ~8 obstacles on empty squares (never over items),
   themed per chapter (cobwebs, leaves, flour sacks, snow drifts in Frosty), plus 2 delivery crates; each hides a
   reward. Cells carry `cover`/`hp`/`need`; use `Cell.locked` for "can't touch". Board colours follow the chapter.
