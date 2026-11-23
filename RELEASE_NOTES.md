@@ -1,6 +1,6 @@
-The grand opening of Surf & Swirl Bakery! 🥐🐶
+Music and a brand-new look for the bakery! 🎶🐶
 
-- Merge your way through bread, cinnamon rolls, sweets, breakfast, fruit, café drinks, flowers and Surf's toys
-- Fix up the bakery on Maple Lane across two story chapters
-- Pay for shop treats with brain puzzles: Word Scramble, Secret Word, Quick Math, Number Patterns, Memory Match and Mini Sudoku
-- The Harvest Festival is on now, and Frosty Holidays starts December 1
+- Cozy café music, with a holiday version for the Frosty Holidays theme (turn it off in Settings)
+- The bakery and patio are now hand-drawn scenes, and every decoration has its proper spot (the bell sits on the counter!)
+- Surf is now a real golden retriever, and he naps in his new bed once you build it. Tap him for a woof
+- New portraits for Mandy and Surf

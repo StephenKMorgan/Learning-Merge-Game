@@ -91,6 +91,7 @@ class GameViewModel(
     private val store: SaveStore?,
     private val sfx: Sfx?,
     private val haptics: Haptics?,
+    private val music: com.surfswirl.bakery.fx.Music? = null,
     private val now: () -> Long = { System.currentTimeMillis() },
     private val today: () -> LocalDate = { LocalDate.now() },
     private val rnd: Random = Random.Default,
@@ -114,6 +115,12 @@ class GameViewModel(
 
     init {
         applySettings()
+        viewModelScope.launch {
+            _ui.collect { u -> music?.setDucked(u.screen == Screen.PUZZLE) }
+        }
+        viewModelScope.launch {
+            _state.collect { s -> music?.setTheme(Events.themeFor(s.settings, today()).id) }
+        }
         refresh()
         if ("intro" !in _state.value.seenStory) {
             pushDialog(Dialog.Talk(Story.intro, "Welcome to Maple Lane"))
@@ -180,6 +187,8 @@ class GameViewModel(
         }
     }
 
+    fun woof() { sfx?.play(Sound.WOOF); haptics?.tick() }
+
     fun playGood() { sfx?.play(Sound.CORRECT); haptics?.click() }
     fun playBad() { sfx?.play(Sound.WRONG, 1f, 0.7f); haptics?.error() }
 
@@ -190,9 +199,13 @@ class GameViewModel(
 
     fun refresh() = apply(Engine.refresh(_state.value, now(), today(), rnd))
 
-    fun onForeground() = refresh()
+    fun onForeground() {
+        refresh()
+        music?.onForeground()
+    }
 
     fun onBackground(context: Context) {
+        music?.onBackground()
         val s = _state.value
         store?.save(s)
         if (s.settings.notifications) {
@@ -207,6 +220,7 @@ class GameViewModel(
     private fun applySettings() {
         sfx?.enabled = _state.value.settings.sound
         haptics?.enabled = _state.value.settings.haptics
+        music?.enabled = _state.value.settings.music
     }
 
     fun go(screen: Screen) {
@@ -481,7 +495,7 @@ class GameViewModel(
         fun factory(app: BakeryApp) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T = GameViewModel(
-                app.store, app.sfx, app.haptics,
+                app.store, app.sfx, app.haptics, app.music,
                 testNow ?: { System.currentTimeMillis() },
                 testToday ?: { LocalDate.now() },
                 testSeed?.let { Random(it) } ?: Random.Default,

@@ -1,0 +1,156 @@
+{
+ "w": 1350,
+ "h": 1175,
+ "layers": [
+  {
+   "id": "base",
+   "file": "patio_base.webp",
+   "x": 0,
+   "y": 0,
+   "w": 1350,
+   "h": 1175,
+   "z": 0,
+   "show": "always"
+  },
+  {
+   "id": "sun",
+   "file": "patio_sun.webp",
+   "x": 1023,
+   "y": 0,
+   "w": 327,
+   "h": 302,
+   "z": 5,
+   "show": "done:c2_sun"
+  },
+  {
+   "id": "tulips",
+   "file": "patio_tulips.webp",
+   "x": 461,
+   "y": 577,
+   "w": 889,
+   "h": 173,
+   "z": 10,
+   "show": "done:c2_tulips"
+  },
+  {
+   "id": "lanterns",
+   "file": "patio_lanterns.webp",
+   "x": 472,
+   "y": 133,
+   "w": 878,
+   "h": 223,
+   "z": 12,
+   "show": "done:c2_candles"
+  },
+  {
+   "id": "balloons",
+   "file": "patio_balloons.webp",
+   "x": 1122,
+   "y": 244,
+   "w": 224,
+   "h": 332,
+   "z": 14,
+   "show": "done:c2_balloons"
+  },
+  {
+   "id": "party",
+   "file": "patio_party.webp",
+   "x": 0,
+   "y": 148,
+   "w": 1350,
+   "h": 490,
+   "z": 16,
+   "show": "done:c2_party"
+  },
+  {
+   "id": "weeds",
+   "file": "patio_weeds.webp",
+   "x": 91,
+   "y": 686,
+   "w": 1193,
+   "h": 459,
+   "z": 20,
+   "show": "undone:c2_weeds"
+  },
+  {
+   "id": "towel",
+   "file": "patio_towel.webp",
+   "x": 731,
+   "y": 1026,
+   "w": 335,
+   "h": 133,
+   "z": 22,
+   "show": "done:c2_sun"
+  },
+  {
+   "id": "umbrella",
+   "file": "patio_umbrella.webp",
+   "x": 473,
+   "y": 312,
+   "w": 454,
+   "h": 588,
+   "z": 30,
+   "show": "done:c2_umbrella"
+  },
+  {
+   "id": "table",
+   "file": "patio_table.webp",
+   "x": 439,
+   "y": 783,
+   "w": 522,
+   "h": 278,
+   "z": 32,
+   "show": "done:c2_tables"
+  },
+  {
+   "id": "bouquet",
+   "file": "patio_bouquet.webp",
+   "x": 641,
+   "y": 743,
+   "w": 118,
+   "h": 161,
+   "z": 34,
+   "show": "done:c2_bouquet"
+  },
+  {
+   "id": "mandy",
+   "file": "patio_mandy.webp",
+   "x": 229,
+   "y": 579,
+   "w": 262,
+   "h": 423,
+   "z": 40,
+   "show": "always"
+  },
+  {
+   "id": "surf_sit",
+   "file": "patio_surf_sit.webp",
+   "x": 990,
+   "y": 829,
+   "w": 206,
+   "h": 241,
+   "z": 44,
+   "show": "undone:c2_sun"
+  },
+  {
+   "id": "surf_towel",
+   "file": "patio_surf_towel.webp",
+   "x": 764,
+   "y": 990,
+   "w": 339,
+   "h": 158,
+   "z": 45,
+   "show": "done:c2_sun"
+  },
+  {
+   "id": "planters",
+   "file": "patio_planters.webp",
+   "x": 0,
+   "y": 937,
+   "w": 1342,
+   "h": 219,
+   "z": 50,
+   "show": "done:c2_planters"
+  }
+ ]
+}

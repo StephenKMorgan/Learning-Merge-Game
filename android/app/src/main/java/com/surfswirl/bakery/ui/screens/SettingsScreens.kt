@@ -89,7 +89,7 @@ fun SettingsScreen(vm: GameViewModel, state: GameState) {
                         Text("Sound & feel", style = MaterialTheme.typography.titleMedium)
                         Toggle("Sound effects", "Pops, chimes and the odd woof", s.sound) { v -> vm.updateSettings { it.copy(sound = v) } }
                         Toggle("Vibration", "Little taps when you merge and serve", s.haptics) { v -> vm.updateSettings { it.copy(haptics = v) } }
-                        Text("Background music is coming in a future update.", style = MaterialTheme.typography.bodySmall)
+                        Toggle("Music", "Cozy café tunes (quieter during puzzles)", s.music) { v -> vm.updateSettings { it.copy(music = v) } }
                     }
                 }
             }
@@ -170,7 +170,7 @@ fun SettingsScreen(vm: GameViewModel, state: GameState) {
                         Text("Made with love for Mandy (and Surf).\n\n" +
                             "Item art: Microsoft Fluent Emoji (MIT License).\n" +
                             "Fonts: Fredoka and Nunito (SIL Open Font License).\n" +
-                            "Cinnamon rolls, sounds and everything else: made for this game.",
+                            "Bakery scenes, Mandy, Surf, cinnamon rolls, music and sounds: made for this game.",
                             style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
                         val version = remember {

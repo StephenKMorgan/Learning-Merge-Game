@@ -126,7 +126,7 @@ private fun tutorialText(step: Int) = when (step) {
 private fun TutorialBanner(text: String) {
     Panel(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp), color = Color(0xFFFFF3C4)) {
         Row(Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            ItemArt("dog_face", Modifier.size(34.dp).bob(3f))
+            ItemArt("surf_face", Modifier.size(34.dp).bob(3f))
             Spacer(Modifier.width(8.dp))
             Text(text, style = MaterialTheme.typography.bodyMedium)
         }
@@ -145,7 +145,7 @@ private fun Hud(vm: GameViewModel, state: GameState, geo: Geometry) {
             val p = it.positionInWindow(); geo.xp = Offset(p.x + it.size.width / 2f, p.y + it.size.height / 2f)
         }.clickable { vm.toast("Level ${state.level} · ${state.xp}/${Economy.xpToNext(state.level)} XP to the next level") }) {
             Box(Modifier.size(46.dp).shadow(3.dp, CircleShape).clip(CircleShape).background(Color.White).border(2.5.dp, Palette.Gold, CircleShape),
-                contentAlignment = Alignment.Center) { ItemArt("woman_cook", Modifier.size(38.dp)) }
+                contentAlignment = Alignment.Center) { ItemArt("mandy_face", Modifier.size(42.dp)) }
             Box(Modifier.align(Alignment.BottomEnd).offset(4.dp, 4.dp).size(22.dp).clip(CircleShape).background(Palette.Blue)
                 .border(2.dp, Color.White, CircleShape), contentAlignment = Alignment.Center) {
                 OutlinedText("${state.level}", 12, outline = Palette.BlueDark)

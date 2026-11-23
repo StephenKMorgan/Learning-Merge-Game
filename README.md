@@ -23,7 +23,8 @@ ask for harder puzzles.
   Gives more energy, faster refills, a 4th order slot and the golden pass track.
 - **Season pass**, **daily login calendar**, **seasonal events with themes** (Harvest Festival, Frosty Holidays,
   Sweetheart Days, Spring Bloom, Surf's Summer, Spooky Season), and a theme picker.
-- Sound effects, vibration, an optional "energy full" notification. Settings to turn off the daily popup
+- Hand-drawn bakery and patio scenes that fill in as you renovate, with Mandy and Surf (a real golden retriever).
+- Original background music (a cozy café loop, a bossa-nova patio track and a holiday version), sound effects, vibration, an optional "energy full" notification. Settings to turn off the daily popup
   and nudges.
 
 ## Install on the phone
@@ -42,4 +43,4 @@ Progress is also in the phone's Google backup, and Settings has Back up / Restor
 ## Credits
 
 Item art: [Microsoft Fluent Emoji](https://github.com/microsoft/fluentui-emoji) (MIT). Fonts: Fredoka and
-Nunito (SIL OFL). Cinnamon roll art, sounds, icon and everything else were made for this game (see `tools/`).
+Nunito (SIL OFL). Scenes, characters, cinnamon roll art, music, sounds and icon were made for this game (see `tools/`).

@@ -129,7 +129,7 @@ object Generators {
     fun memoryColumns(level: Int) = if (memoryPairs(level) <= 4) 3 else 4
 
     val memoryArt = listOf("croissant", "cupcake", "doughnut", "cookie", "strawberry", "cherries", "peach", "tulip",
-        "sunflower", "teddy_bear", "bone", "honey_pot", "pretzel", "bagel", "bubble_tea", "iced_roll", "dog_face",
+        "sunflower", "teddy_bear", "bone", "honey_pot", "pretzel", "bagel", "bubble_tea", "iced_roll", "surf_face",
         "watermelon", "rose", "hot_beverage", "lollipop", "pancakes")
 
     fun memory(level: Int, rnd: Random): List<String> {

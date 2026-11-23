@@ -119,7 +119,7 @@ fun BakeryScreen(vm: GameViewModel, state: GameState) {
                         Spacer(Modifier.height(4.dp))
                         ProgressBar(done.toFloat() / chapter.tasks.size, Modifier.fillMaxWidth(), Palette.Pink, 18.dp, "$done / ${chapter.tasks.size} tasks")
                         Spacer(Modifier.height(8.dp))
-                        Scene(chapter.scene, chapter.tasks.map { it to (it.id in state.tasksDone) }, next?.id)
+                        SceneView(chapter.scene, state.tasksDone, next?.id, onSurf = { vm.woof() })
                     }
                 }
             }
@@ -155,64 +155,6 @@ fun BakeryScreen(vm: GameViewModel, state: GameState) {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun Scene(scene: String, tasks: List<Pair<com.surfswirl.bakery.game.Task, Boolean>>, nextId: String?) {
-    BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(1.15f).clip(RoundedCornerShape(18.dp))) {
-        val w = maxWidth; val h = maxHeight
-        Canvas(Modifier.fillMaxSize()) {
-            if (scene == "inside") {
-                // wallpaper
-                drawRect(Brush.verticalGradient(listOf(Color(0xFFFFE1E8), Color(0xFFFFD2C2))), size = Size(size.width, size.height * 0.62f))
-                val stripe = size.width / 14
-                for (i in 0 until 14 step 2) drawRect(Color(0x22FFFFFF), Offset(i * stripe, 0f), Size(stripe, size.height * 0.62f))
-                // wainscot
-                drawRect(Color(0xFFF7C8A8), Offset(0f, size.height * 0.5f), Size(size.width, size.height * 0.12f))
-                // floor
-                drawRect(Brush.verticalGradient(listOf(Color(0xFFC98B5E), Color(0xFFA9683F)), startY = size.height * 0.62f), Offset(0f, size.height * 0.62f),
-                    Size(size.width, size.height * 0.38f))
-                for (i in 0..8) drawLine(Color(0x33000000), Offset(i * size.width / 8, size.height * 0.62f), Offset(i * size.width / 8 - 40f + i * 10f, size.height), 3f)
-                // counter
-                drawRoundRect(Color(0xFF8A5A44), Offset(size.width * 0.28f, size.height * 0.5f), Size(size.width * 0.44f, size.height * 0.2f), CornerRadius(18f))
-                drawRoundRect(Color(0xFFFFF1E0), Offset(size.width * 0.26f, size.height * 0.48f), Size(size.width * 0.48f, size.height * 0.04f), CornerRadius(10f))
-            } else {
-                drawRect(Brush.verticalGradient(listOf(Color(0xFF9FDBFF), Color(0xFFE8F7FF))), size = Size(size.width, size.height * 0.55f))
-                drawCircle(Color(0x66FFFFFF), size.width * 0.08f, Offset(size.width * 0.25f, size.height * 0.15f))
-                drawCircle(Color(0x66FFFFFF), size.width * 0.06f, Offset(size.width * 0.32f, size.height * 0.13f))
-                drawRect(Brush.verticalGradient(listOf(Color(0xFF8EDB7A), Color(0xFF5DB85A)), startY = size.height * 0.55f), Offset(0f, size.height * 0.55f),
-                    Size(size.width, size.height * 0.45f))
-                // fence
-                for (i in 0..12) drawRoundRect(Color(0xFFFFFBF2), Offset(i * size.width / 12 - 6f, size.height * 0.42f), Size(16f, size.height * 0.16f), CornerRadius(6f))
-                drawRect(Color(0xFFFFFBF2), Offset(0f, size.height * 0.47f), Size(size.width, 10f))
-                // patio stones
-                for (r in 0..2) for (c in 0..5) drawRoundRect(Color(0x33FFFFFF), Offset(size.width * (0.2f + c * 0.11f) + r * 12f, size.height * (0.62f + r * 0.1f)),
-                    Size(size.width * 0.09f, size.height * 0.07f), CornerRadius(12f))
-            }
-        }
-        for ((t, isDone) in tasks) {
-            val sz = w * t.size
-            val pos = Modifier.offset(w * t.x - sz / 2, h * t.y - sz / 2).size(sz)
-            if (isDone) {
-                val a = remember { Animatable(0f) }
-                LaunchedEffect(Unit) { a.animateTo(1f, spring(dampingRatio = 0.4f, stiffness = 200f)) }
-                ItemArt(t.art, pos.graphicsLayer { scaleX = a.value; scaleY = a.value })
-            } else if (t.id == nextId) {
-                Box(pos.pulse(amount = 0.08f), contentAlignment = Alignment.Center) {
-                    Canvas(Modifier.fillMaxSize()) {
-                        drawCircle(Color(0x88FFFFFF), size.minDimension / 2)
-                        drawCircle(Color.White, size.minDimension / 2, style = Stroke(5f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f))))
-                    }
-                    OutlinedText("?", 20, outline = Palette.PinkDark)
-                }
-            }
-        }
-        // Mandy and Surf hang out in the scene.
-        ItemArt("woman_cook", Modifier.offset(w * 0.42f, h * 0.30f).size(w * 0.16f).bob(3f, 2000))
-        val t = rememberInfiniteTransition(label = "surf")
-        val x by t.animateFloat(0.25f, 0.68f, infiniteRepeatable(tween(7000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "x")
-        ItemArt("dog", Modifier.offset(w * x, h * 0.80f).size(w * 0.16f).bob(2f, 400))
     }
 }
 

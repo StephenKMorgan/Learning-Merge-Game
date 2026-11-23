@@ -95,7 +95,7 @@ fun DialogHost(vm: GameViewModel, state: GameState, ui: Ui, particles: Particles
                 is Dialog.ChainInfo -> ChainDialog(vm, state, dlg.chainId)
                 Dialog.PickPuzzle -> PickPuzzleDialog(vm, ui)
                 is Dialog.PuzzleFailed -> Card(vm, "So close!") {
-                    ItemArt("dog_face", Modifier.size(80.dp).bob())
+                    ItemArt("surf_face", Modifier.size(80.dp).bob())
                     Text("That one was tricky. Surf believes in you! Want to try a different puzzle?", style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
                     Spacer(Modifier.height(12.dp))
                     CandyButton("Try another", Modifier.fillMaxWidth()) { vm.retryPuzzle() }

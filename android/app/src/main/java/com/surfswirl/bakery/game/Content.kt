@@ -102,7 +102,7 @@ object Content {
             "Bread and cinnamon dough. The heart of the bakery."),
         GeneratorDef("fruit_basket", "Fruit Basket", "basket", listOf("fruit" to 100), 24, 20, 1,
             "Fresh fruit from the market."),
-        GeneratorDef("surf", "Surf", "dog_face", listOf("toys" to 85, "coins" to 15), 12, 30, 1,
+        GeneratorDef("surf", "Surf", "surf_face", listOf("toys" to 85, "coins" to 15), 12, 30, 1,
             "Surf the golden retriever. Tap for toys (and the odd coin he found)."),
         GeneratorDef("hen_house", "Hen House", "hut", listOf("breakfast" to 100), 24, 20, 2,
             "Eggs, milk and breakfast goodies."),
@@ -117,8 +117,8 @@ object Content {
     fun generator(id: String): GeneratorDef? = genMap[id] ?: Events.byId(id.removePrefix("event_"))?.generator
 
     val characters: List<Character> = listOf(
-        Character("mandy", "Mandy", "woman_cook"),
-        Character("surf", "Surf", "dog_face"),
+        Character("mandy", "Mandy", "mandy_face"),
+        Character("surf", "Surf", "surf_face"),
         Character("june", "Grandma June", "old_woman"),
         Character("walt", "Grandpa Walt", "old_man"),
         Character("kai", "Kai the Surfer", "person_surfing"),
