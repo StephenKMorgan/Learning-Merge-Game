@@ -22,6 +22,8 @@ data class Chapter(
     val intro: List<Line>,
     val tasks: List<Task>,
     val reward: Reward,
+    /** Time-released content: the chapter's tasks can't start before this date (shipped early, opens later). */
+    val opens: java.time.LocalDate? = null,
 )
 
 /**
@@ -170,7 +172,35 @@ object Story {
         return chapters.size
     }
 
-    fun nextTask(done: Set<String>): Task? = chapters.getOrNull(chapterIndex(done))?.tasks?.firstOrNull { it.id !in done }
+    fun nextTask(done: Set<String>, today: java.time.LocalDate? = null): Task? {
+        val ch = chapters.getOrNull(chapterIndex(done)) ?: return null
+        if (!isOpen(ch, today)) return null
+        return ch.tasks.firstOrNull { it.id !in done }
+    }
+
+    fun isOpen(ch: Chapter, today: java.time.LocalDate?) = ch.opens == null || today == null || !today.isBefore(ch.opens)
+
+    /**
+     * Spots on the Maple Lane map (positions in assets/scenes/map.json). A location opens once any of its places
+     * is visible; until then it sits under clouds with its [teaser].
+     */
+    data class Location(val id: String, val name: String, val icon: String, val places: List<String>,
+                        val blurb: String = "", val teaser: String = "Coming soon")
+
+    val locations = listOf(
+        Location("bakery", "Surf & Swirl Bakery", "house", listOf("bakery", "patio", "kitchen"),
+            "Where it all began: the bakery, its sunny patio and the back kitchen."),
+        Location("hill", "Grandma June's Cottage", "christmas_tree", listOf("cottage"),
+            "June's cozy cottage on the hill.", teaser = "Opens with Frosty Holidays"),
+        Location("tearoom", "Rose Tea Room", "heart_with_ribbon", emptyList(), teaser = "Coming for Sweetheart Days"),
+        Location("market", "Market Square", "shopping_bags", emptyList(), teaser = "Coming in early spring"),
+        Location("greenhouse", "Bea's Greenhouse", "potted_plant", emptyList(), teaser = "Coming for Spring Bloom"),
+        Location("beach", "The Beach", "umbrella_on_ground", emptyList(), teaser = "Coming this summer"),
+        Location("orchard", "The Orchard", "red_apple", emptyList(), teaser = "Coming in the fall"),
+        Location("fair", "The Fairground", "party_popper", emptyList(), teaser = "Coming for the Bake-Off"),
+    )
+
+    fun locationOf(placeId: String) = locations.firstOrNull { placeId in it.places }
     fun allTasks() = chapters.flatMap { it.tasks }
     fun task(id: String) = allTasks().firstOrNull { it.id == id }
     fun chapterOf(taskId: String) = chapters.first { c -> c.tasks.any { it.id == taskId } }

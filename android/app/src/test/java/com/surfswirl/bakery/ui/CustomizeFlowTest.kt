@@ -52,7 +52,7 @@ class CustomizeFlowTest {
         rule.tapDesc("Done")
 
         // The new look in a scene and in story dialogue
-        rule.vm().go(Screen.BAKERY)
+        rule.vm().openPlace("bakery")
         rule.waitText("Next task")
         rule.mainClock.advanceTimeBy(1500)
         rule.shot("look-3-scene")

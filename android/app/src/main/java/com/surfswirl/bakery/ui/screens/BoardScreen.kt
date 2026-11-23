@@ -62,6 +62,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.min
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.surfswirl.bakery.game.BOARD_COLS
@@ -204,7 +205,7 @@ private fun OrderCard(vm: GameViewModel, state: GameState, o: Order) {
                 Spacer(Modifier.width(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                     for (w in o.wants) {
-                        val have = state.board.any { it.item == w && !it.boxed }
+                        val have = state.board.any { it.item == w && !it.locked }
                         Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(Color(0x22FFB070))) {
                             ItemArt(Content.art(w), Modifier.fillMaxSize().padding(3.dp).wiggle(have && ready, 4f))
                             if (have) Box(Modifier.size(16.dp).align(Alignment.BottomEnd).clip(CircleShape).background(Palette.Green)
@@ -231,6 +232,8 @@ private data class DragState(val from: Int, val pos: Offset)
 @Composable
 private fun Board(vm: GameViewModel, state: GameState, ui: Ui, geo: Geometry) {
     val colors = LocalGameColors.current
+    // The board takes on the colours of the current chapter's place.
+    val palette = boardPalette(com.surfswirl.bakery.game.Story.chapterIndex(state.tasksDone), colors)
     val now by vm.clock.collectAsStateWithLifecycle()
     val lastTouch by vm.lastTouch.collectAsStateWithLifecycle()
     val board by rememberUpdatedState(state.board)
@@ -255,7 +258,7 @@ private fun Board(vm: GameViewModel, state: GameState, ui: Ui, geo: Geometry) {
                     awaitEachGesture {
                         val down = awaitFirstDown()
                         val start = cellAt(down.position) ?: return@awaitEachGesture
-                        val movable = board[start].item != null && !board[start].boxed
+                        val movable = board[start].item != null && !board[start].locked
                         var dragging = false
                         var pos = down.position
                         while (true) {
@@ -274,11 +277,11 @@ private fun Board(vm: GameViewModel, state: GameState, ui: Ui, geo: Geometry) {
             // Board frame and checker tiles
             Canvas(Modifier.fillMaxSize()) {
                 val cp = size.width / BOARD_COLS
-                drawRoundRect(colors.frame, Offset(-8f, -8f), Size(size.width + 16f, size.height + 16f), CornerRadius(36f))
+                drawRoundRect(palette.third, Offset(-8f, -8f), Size(size.width + 16f, size.height + 16f), CornerRadius(36f))
                 drawRoundRect(Color.White.copy(alpha = 0.5f), Offset(-4f, -4f), Size(size.width + 8f, size.height + 8f), CornerRadius(30f), style = Stroke(4f))
                 for (i in 0 until BOARD_COLS * BOARD_ROWS) {
                     val r = i / BOARD_COLS; val c = i % BOARD_COLS
-                    drawRoundRect(if ((r + c) % 2 == 0) colors.tileA else colors.tileB, Offset(c * cp + 2f, r * cp + 2f),
+                    drawRoundRect(if ((r + c) % 2 == 0) palette.first else palette.second, Offset(c * cp + 2f, r * cp + 2f),
                         Size(cp - 4f, cp - 4f), CornerRadius(cp * 0.22f))
                 }
             }
@@ -308,7 +311,7 @@ private fun Board(vm: GameViewModel, state: GameState, ui: Ui, geo: Geometry) {
                 if (c.item != null) key(c.uid) {
                     BoardItem(vm, i, c, cell, state.generators, now,
                         dragging = drag?.from == i,
-                        wanted = c.item in wanted && !c.boxed,
+                        wanted = c.item in wanted && !c.locked,
                         hint = showHint && hintPair != null && i in hintPair)
                 }
             }
@@ -331,7 +334,7 @@ private fun findPair(board: List<Cell>): Set<Int>? {
     val seen = mutableMapOf<String, Int>()
     for ((i, c) in board.withIndex()) {
         val it = c.item ?: continue
-        if (c.boxed || Content.isGenerator(it) || Content.next(it) == null) continue
+        if (c.locked || Content.isGenerator(it) || Content.next(it) == null) continue
         val j = seen[it]
         if (j != null) return setOf(i, j)
         seen[it] = i
@@ -379,7 +382,7 @@ private fun BoardItem(vm: GameViewModel, i: Int, c: Cell, cell: Dp, gens: Map<St
                 scaleX = s; scaleY = s
                 alpha = if (dragging) 0.3f else 1f
             }
-            .semantics { contentDescription = (if (c.boxed) "Boxed " else "") + Content.name(item) },
+            .semantics { contentDescription = (if (c.boxed) "Boxed " else if (c.cover.isNotEmpty()) "${com.surfswirl.bakery.game.Obstacles.name(c.cover)} " else "") + Content.name(item) },
     ) {
         if (c.boxed) {
             Box(Modifier.fillMaxSize().padding(2.dp).clip(RoundedCornerShape(cell * 0.22f))
@@ -391,6 +394,7 @@ private fun BoardItem(vm: GameViewModel, i: Int, c: Cell, cell: Dp, gens: Map<St
             }
             return@Box
         }
+        if (c.cover.isNotEmpty()) { ObstacleTile(c, cell); return@Box }
         val mod = Modifier.fillMaxSize().padding(cell * 0.06f)
             .then(if (hint) Modifier.wiggle(true, 9f) else Modifier)
             .then(if (gen && !cooling) Modifier.pulse(amount = 0.05f, period = 1100) else Modifier)
@@ -473,6 +477,7 @@ private fun idleTip(s: GameState, now: Long): String {
 private fun itemSubtitle(s: GameState, c: Cell, now: Long): String {
     val item = c.item!!
     if (c.boxed) return "Merge something next to this box to open it."
+    if (c.cover.isNotEmpty()) return com.surfswirl.bakery.game.Obstacles.hint(c)
     if (Content.isGenerator(item)) {
         val gid = Content.genId(item)
         val g = s.generators[gid] ?: return ""
@@ -492,7 +497,7 @@ private fun itemSubtitle(s: GameState, c: Cell, now: Long): String {
 @Composable
 private fun ItemActions(vm: GameViewModel, state: GameState, c: Cell) {
     val item = c.item!!
-    if (c.boxed) return
+    if (c.locked) return
     Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
         val ch = Content.chainOf(item)
         if (ch != null && ch.collect == null) {
@@ -517,20 +522,83 @@ private fun BottomBar(vm: GameViewModel, state: GameState) {
     val ev = Events.active(today)
     val passDot = (0 until Engine.passTier(state)).any { it !in state.passClaimedFree || (Engine.vip(state, today) && it !in state.passClaimedVip) }
     val eventDot = ev != null && ev.milestones.withIndex().any { (i, m) -> state.eventPts >= m.first && i !in state.eventClaimed }
-    val bakeryDot = Story.nextTaskAffordable(state)
+    val bakeryDot = Story.nextTaskAffordable(state, today)
     Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-        NavButton("house", "Bakery", dot = bakeryDot) { vm.go(Screen.BAKERY) }
+        NavButton("house", "Map", dot = bakeryDot) { vm.go(Screen.BAKERY) }
         NavButton("shopping_bags", "Shop", dot = state.freeTreatDay != today.toString()) { vm.go(Screen.SHOP) }
         NavButton("ticket", "Pass", dot = passDot) { vm.go(Screen.PASS) }
         if (ev != null) NavButton(ev.icon, "Event", dot = eventDot) { vm.go(Screen.EVENT) }
-        NavButton("calendar", "Daily", dot = Engine.dailyAvailable(state, today)) { vm.pushDialog(Dialog.Daily) }
+        NavButton("calendar", "Goals", dot = Engine.goalsReady(state, today)) { vm.go(Screen.GOALS) }
         NavButton("gear", "Settings") { vm.go(Screen.SETTINGS) }
     }
 }
 
 private object Story {
-    fun nextTaskAffordable(s: GameState): Boolean {
-        val t = com.surfswirl.bakery.game.Story.nextTask(s.tasksDone) ?: return false
+    fun nextTaskAffordable(s: GameState, today: java.time.LocalDate): Boolean {
+        val t = com.surfswirl.bakery.game.Story.nextTask(s.tasksDone, today) ?: return false
         return s.coins >= t.cost
+    }
+}
+
+
+/** Board tile colours (light, dark, frame) for each chapter's place. */
+private fun boardPalette(chapter: Int, colors: com.surfswirl.bakery.ui.theme.GameColors) = when (chapter) {
+    1 -> Triple(Color(0xFFF1FBE9), Color(0xFFE0F2D3), Color(0xFF6FA35E))      // patio: garden greens
+    2 -> Triple(Color(0xFFF3F9FE), Color(0xFFE0EDF8), Color(0xFF5D8FB5))      // kitchen: blue and white tiles
+    else -> Triple(colors.tileA, colors.tileB, colors.frame)                  // bakery: the theme's colours
+}
+
+/** How an obstacle looks: themed tile, a peek of the reward, and what it needs. */
+@Composable
+private fun ObstacleTile(c: Cell, cell: Dp) {
+    val (top, bottom, icon) = when (c.cover) {
+        "web" -> Triple(Color(0xFFE9E4EE), Color(0xFFCFC6D8), "")
+        "sack" -> Triple(Color(0xFFF1DDB5), Color(0xFFD9B987), "")
+        "leaves" -> Triple(Color(0xFFFFD9A8), Color(0xFFF0A868), "fallen_leaf")
+        "drift" -> Triple(Color(0xFFFFFFFF), Color(0xFFDDEEFF), "snowflake")
+        else -> Triple(Color(0xFFD9A066), Color(0xFFB07A45), "")
+    }
+    Box(Modifier.fillMaxSize().padding(2.dp).clip(RoundedCornerShape(cell * 0.22f))
+        .background(Brush.verticalGradient(listOf(top, bottom)))
+        .border(2.dp, Color.White.copy(alpha = 0.7f), RoundedCornerShape(cell * 0.22f))) {
+        when (c.cover) {
+            "crate" -> {
+                Canvas(Modifier.fillMaxSize()) {
+                    val w = size.width
+                    drawLine(Color(0xFF8A5A34), Offset(w * 0.12f, w * 0.12f), Offset(w * 0.88f, w * 0.88f), w * 0.07f)
+                    drawLine(Color(0xFF8A5A34), Offset(w * 0.88f, w * 0.12f), Offset(w * 0.12f, w * 0.88f), w * 0.07f)
+                }
+                Box(Modifier.align(Alignment.Center).size(cell * 0.58f).clip(CircleShape).background(Color.White)
+                    .border(2.dp, Palette.Orange, CircleShape), contentAlignment = Alignment.Center) {
+                    ItemArt(Content.art(c.need), Modifier.size(cell * 0.44f))
+                }
+            }
+            "web" -> {
+                ItemArt(Content.art(c.item!!), Modifier.fillMaxSize().padding(cell * 0.2f), alpha = 0.4f, gray = true)
+                Canvas(Modifier.fillMaxSize()) {
+                    val w = size.width; val col = Color.White
+                    for (a in 0 until 6) {
+                        val ang = a * Math.PI / 3
+                        drawLine(col, Offset(w / 2, w / 2), Offset(w / 2 + (w * 0.55f * kotlin.math.cos(ang)).toFloat(), w / 2 + (w * 0.55f * kotlin.math.sin(ang)).toFloat()), 2.5f)
+                    }
+                    for (r in listOf(0.15f, 0.28f, 0.4f)) drawCircle(col, w * r, Offset(w / 2, w / 2), style = androidx.compose.ui.graphics.drawscope.Stroke(2f))
+                }
+            }
+            "sack" -> {
+                Canvas(Modifier.fillMaxSize()) {
+                    val w = size.width
+                    drawRoundRect(Color(0xFFFFF6E6), Offset(w * 0.2f, w * 0.28f), Size(w * 0.6f, w * 0.6f), CornerRadius(w * 0.12f))
+                    drawRect(Color(0xFFC98B62), Offset(w * 0.3f, w * 0.2f), Size(w * 0.4f, w * 0.1f))
+                }
+                Text("FLOUR", Modifier.align(Alignment.Center).padding(top = cell * 0.18f), fontSize = (cell.value * 0.15f).sp,
+                    color = Palette.CocoaSoft, style = MaterialTheme.typography.labelSmall)
+            }
+            else -> {
+                ItemArt(Content.art(c.item!!), Modifier.fillMaxSize().padding(cell * 0.22f), alpha = 0.35f, gray = true)
+                if (icon.isNotEmpty()) for ((dx, dy) in listOf(0.1f to 0.1f, 0.55f to 0.2f, 0.3f to 0.55f))
+                    ItemArt(icon, Modifier.offset(cell * dx, cell * dy).size(cell * 0.38f))
+            }
+        }
+        if (c.hp > 1) Badge("${c.hp}", Modifier.align(Alignment.TopEnd), color = Palette.CocoaSoft)
     }
 }

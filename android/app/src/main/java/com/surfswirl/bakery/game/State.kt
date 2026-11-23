@@ -25,7 +25,16 @@ data class Cell(
     val uid: Long = 0,
     /** Items left in a gift box. */
     val left: Int = 0,
-)
+    /** A chapter obstacle over the item: "web", "sack", "leaves", "drift" (clear by merging next to it) or "crate". */
+    val cover: String = "",
+    /** Merges next to it still needed to clear the cover. */
+    val hp: Int = 0,
+    /** For a crate: the item that opens it. */
+    val need: String = "",
+) {
+    /** Can't be moved, merged or served: under a packing box or an obstacle. */
+    val locked get() = boxed || cover.isNotEmpty()
+}
 
 @Serializable
 data class GenState(val charges: Int = 0, val cooldownUntil: Long = 0)
@@ -128,6 +137,16 @@ data class GameState(
     val brain: Map<String, Double> = emptyMap(),
     val puzzleLog: List<PuzzleRecord> = emptyList(),
     val counters: Map<String, Long> = emptyMap(),
+    /** Daily specials: the day they're for, the counters at the start of that day, and which were claimed. */
+    val goalsDay: String = "",
+    val dayStart: Map<String, Long> = emptyMap(),
+    val dailyGoalsClaimed: Set<String> = emptySet(),
+    /** Weekly mini-event: ISO week id, points earned this week, milestones claimed. */
+    val weekId: String = "",
+    val weekPts: Int = 0,
+    val weekClaimed: Set<Int> = emptySet(),
+    /** Board obstacles: the chapter whose obstacles were last laid out (-1 = none yet). */
+    val obstacleChapter: Int = -1,
     val settings: Settings = Settings(),
     val lastSeen: Long = 0,
 ) {

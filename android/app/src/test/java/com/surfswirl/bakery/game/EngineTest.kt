@@ -253,4 +253,80 @@ class EngineTest {
         val ev = Events.byId("frosty")!!
         assertEquals(ev.milestones.size, ev.decor.size)
     }
+
+    @Test fun obstaclesAreLaidOncePerChapterAndCleared() {
+        var s = game().copy(tasksDone = Story.chapters[0].tasks.map { it.id }.toSet())   // now in chapter 2 (patio)
+        // clear the edge boxes so there's room
+        s = s.copy(board = s.board.map { if (it.boxed) Cell() else it })
+        s = Obstacles.lay(s, day, Random(3))
+        assertEquals(1, s.obstacleChapter)
+        val covered = s.board.indices.filter { s.board[it].cover.isNotEmpty() }
+        assertEquals(8, covered.size)
+        assertTrue(covered.all { s.board[it].item != null })
+        assertEquals(2, covered.count { s.board[it].cover == "crate" })
+        assertEquals(s, Obstacles.lay(s, day, Random(4)))   // not again for the same chapter
+        // can't move or serve covered items
+        val c0 = covered.first { s.board[it].cover == "leaves" }
+        assertEquals(s.board, Engine.move(s, c0, Engine.nearestEmpty(s.board, c0)!!, Random(1)).state.board)
+        // a merge next to it clears it
+        val n = Engine.neighbours(c0).first { s.board[it].item == null && !s.board[it].locked }
+        val other = Engine.neighbours(n).firstOrNull { it != c0 && s.board[it].item == null && !s.board[it].locked }
+            ?: s.board.indices.first { it != n && s.board[it].item == null && !s.board[it].locked }
+        val b = s.board.toMutableList(); b[n] = Cell("bread:1", uid = 5000); b[other] = Cell("bread:1", uid = 5001)
+        val merged = Engine.move(s.copy(board = b), other, n, Random(1)).state
+        assertEquals("", merged.board[c0].cover)
+        assertEquals(1L, merged.count("cleared"))
+    }
+
+    @Test fun cratesOpenWithTheRightItem() {
+        var s = game()
+        val b = s.board.toMutableList()
+        b[Engine.idx(2, 2)] = Cell("coins:2", uid = 700, cover = "crate", need = "fruit:2")
+        b[Engine.idx(2, 3)] = Cell("bread:2", uid = 701)
+        b[Engine.idx(2, 4)] = Cell("fruit:2", uid = 702)
+        s = s.copy(board = b)
+        val wrong = Engine.move(s, Engine.idx(2, 3), Engine.idx(2, 2), Random(1))
+        assertTrue(wrong.fx.contains(Fx.Error))
+        assertEquals("crate", wrong.state.board[Engine.idx(2, 2)].cover)
+        val right = Engine.move(s, Engine.idx(2, 4), Engine.idx(2, 2), Random(1)).state
+        assertEquals("", right.board[Engine.idx(2, 2)].cover)
+        assertEquals("coins:2", right.board[Engine.idx(2, 2)].item)
+        assertNull(right.board[Engine.idx(2, 4)].item)
+    }
+
+    @Test fun dailySpecialsAndWeeklyEvent() {
+        var s = Engine.refresh(game(), t0, day, Random(1)).state
+        val specials = Goals.today(day)
+        assertEquals(3, specials.size)
+        assertEquals(specials, Goals.today(day))                    // same all day
+        val g = specials.first()
+        assertTrue(Engine.claimDailyGoal(s, g.id, day).state.dailyGoalsClaimed.isEmpty())   // not done yet
+        s = s.copy(counters = s.counters + (g.counter to (s.counters[g.counter] ?: 0L) + g.target))
+        s = Engine.claimDailyGoal(s, g.id, day).state
+        assertTrue(g.id in s.dailyGoalsClaimed)
+        // next day: fresh specials, progress counted from the new day's start
+        val next = Engine.refresh(s, t0, day.plusDays(1), Random(1)).state
+        assertTrue(next.dailyGoalsClaimed.isEmpty())
+        assertEquals(0, Goals.progress(next, g))
+        // weekly points from serving; double for the week's theme
+        val theme = Goals.week(day).chain
+        assertEquals(2, Goals.orderPoints(Order(1, "june", listOf("$theme:2"), 1, 1, 1), day))
+        assertEquals(1, Goals.orderPoints(Order(1, "june", listOf(if (theme == "fruit") "bread:2" else "fruit:2"), 1, 1, 1), day))
+        s = s.copy(weekPts = 30)
+        s = Engine.claimWeek(s, 0).state
+        assertTrue(0 in s.weekClaimed)
+        val nextWeek = Engine.refresh(s, t0, day.plusDays(7), Random(1)).state
+        assertEquals(0, nextWeek.weekPts)
+    }
+
+    @Test fun chaptersCanOpenOnADate() {
+        val locked = Story.Location("x", "x", "house", emptyList())
+        assertTrue(locked.teaser.isNotEmpty())
+        val ch = Story.chapters[0].copy(opens = day.plusDays(5))
+        assertFalse(Story.isOpen(ch, day))
+        assertTrue(Story.isOpen(ch, day.plusDays(5)))
+        assertTrue(Story.isOpen(Story.chapters[0], day))
+        // every map location has a spot, and every place belongs to one location
+        for (p in Story.places) assertNotNull("${p.id} has a location", Story.locationOf(p.id))
+    }
 }

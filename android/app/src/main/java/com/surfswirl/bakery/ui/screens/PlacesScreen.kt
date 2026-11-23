@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -52,63 +55,170 @@ import com.surfswirl.bakery.ui.components.bob
 import com.surfswirl.bakery.ui.components.pulse
 import com.surfswirl.bakery.ui.theme.Palette
 
-/** Which story places show up in the row at the top: unlocked chapters, the next locked one, and event places. */
-fun visiblePlaces(state: GameState, vm: GameViewModel): List<Pair<Story.Place, Boolean>> {
+/** Whether a story place can be visited, and why not. */
+fun placeOpen(p: Story.Place, state: GameState, today: java.time.LocalDate): Boolean {
     val chapter = Story.chapterIndex(state.tasksDone)
-    val active = Events.active(vm.today())?.id
-    return Story.places.mapNotNull { p ->
-        when {
-            p.event != null -> {
-                val played = state.eventDecor.any { it.startsWith(p.event + "_") }
-                if (p.event == active || played) p to true else null
-            }
-            p.chapter <= chapter -> p to true
-            p.chapter == chapter + 1 -> p to false   // shown locked, as a teaser
-            else -> null
-        }
+    return when {
+        p.event != null -> Events.active(today)?.id == p.event || state.eventDecor.any { it.startsWith(p.event + "_") }
+        else -> p.chapter <= chapter && p.chapter < Story.chapters.size
     }
+}
+
+/** Places in this location that can be visited. */
+fun openPlaces(loc: Story.Location, state: GameState, today: java.time.LocalDate) =
+    loc.places.mapNotNull { id -> Story.places.firstOrNull { it.id == id } }.filter { placeOpen(it, state, today) }
+
+/** Whether a place has something to do right now (affordable task, claimable decoration). */
+fun placeHasNews(p: Story.Place, state: GameState, today: java.time.LocalDate): Boolean {
+    if (p.event != null) {
+        val ev = Events.byId(p.event) ?: return false
+        return Events.active(today)?.id == ev.id && ev.milestones.withIndex().any { (i, m) -> state.eventPts >= m.first && i !in state.eventClaimed }
+    }
+    if (p.chapter != Story.chapterIndex(state.tasksDone)) return false
+    val t = Story.nextTask(state.tasksDone, today) ?: return false
+    return state.coins >= t.cost
+}
+
+object MapData {
+    @kotlinx.serialization.Serializable
+    data class Map(val w: Int, val h: Int, val spots: kotlin.collections.Map<String, List<Int>>)
+    private var map: Map? = null
+    fun get(ctx: android.content.Context): Map? = map ?: runCatching {
+        kotlinx.serialization.json.Json { ignoreUnknownKeys = true }.decodeFromString(Map.serializer(),
+            ctx.assets.open("scenes/map.json").bufferedReader().readText())
+    }.getOrNull().also { map = it }
 }
 
 /**
- * The story: a row of places along Maple Lane. The current chapter's place opens by default; any place
- * you've already fixed up can be visited, explored full screen, and tapped to relive its moments.
+ * Maple Lane: a map of every story location. Open locations have a pin; tap one for its stories. Places that
+ * aren't open yet wait under clouds with a hint of when they're coming. New locations just add a pin.
  */
 @Composable
 fun BakeryScreen(vm: GameViewModel, state: GameState) {
-    val chIdx = Story.chapterIndex(state.tasksDone)
-    val places = visiblePlaces(state, vm)
-    val defaultPlace = Story.places.firstOrNull { it.chapter == chIdx.coerceAtMost(Story.chapters.size - 1) }?.id ?: "bakery"
-    var selected by rememberSaveable { mutableStateOf(defaultPlace) }
-    val place = places.firstOrNull { it.first.id == selected && it.second }?.first ?: Story.places.first { it.id == defaultPlace }
-    val done = state.tasksDone + state.eventDecor
-
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val today = vm.today()
+    val map = androidx.compose.runtime.remember { MapData.get(ctx) }
+    val img = androidx.compose.runtime.remember { Scenes.image(ctx, "map.webp") }
+    val scroll = androidx.compose.foundation.rememberScrollState()
+    val current = Story.places.firstOrNull { it.chapter == Story.chapterIndex(state.tasksDone).coerceAtMost(Story.chapters.size - 1) }
+        ?.let { Story.locationOf(it.id) }?.id ?: "bakery"
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         ScreenHeader(vm, state, "Maple Lane")
-        LazyRow(contentPadding = PaddingValues(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(places, key = { it.first.id }) { (p, open) ->
-                PlaceChip(p, selected = p.id == place.id, open = open) {
-                    if (open) selected = p.id else vm.toast("Finish Chapter ${p.chapter} to open the ${p.name}!")
+        if (map == null || img == null) return
+        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+            val k = constraints.maxWidth / map.w.toFloat()
+            val viewport = constraints.maxHeight
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            androidx.compose.runtime.LaunchedEffect(Unit) {
+                val y = (map.spots[current]?.get(1) ?: 0) * k
+                scroll.scrollTo((y - viewport / 2f).toInt().coerceAtLeast(0))
+            }
+            Box(Modifier.fillMaxSize().background(Color(0xFF5CC3E8)).verticalScroll(scroll)) {
+                androidx.compose.foundation.Image(img, contentDescription = "Map of Maple Lane",
+                    modifier = Modifier.fillMaxWidth().aspectRatio(map.w / map.h.toFloat()))
+                for (loc in Story.locations) {
+                    val spot = map.spots[loc.id] ?: continue
+                    val open = openPlaces(loc, state, today)
+                    val news = open.any { placeHasNews(it, state, today) }
+                    val cx = with(density) { (spot[0] * k).toDp() }
+                    val cy = with(density) { (spot[1] * k).toDp() }
+                    if (open.isEmpty()) LockedSpot(loc, cx, cy) { vm.toast("${loc.name}: ${loc.teaser}") }
+                    else MapPin(loc, cx, cy, news, loc.id == current) { vm.pushDialog(Dialog.Location(loc.id)) }
                 }
             }
-        }
-        LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (place.event != null) eventPlace(vm, state, place, done) else chapterPlace(vm, state, place, done, chIdx)
         }
     }
 }
 
 @Composable
-private fun PlaceChip(p: Story.Place, selected: Boolean, open: Boolean, onClick: () -> Unit) {
-    Column(Modifier.width(76.dp).semantics { contentDescription = "Place ${p.name}" }.clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(Modifier.size(60.dp).clip(RoundedCornerShape(18.dp))
-            .background(if (selected) Color(0xFFFFE08A) else Color.White)
-            .border(if (selected) 3.dp else 2.dp, if (selected) Palette.Orange else Color.White, RoundedCornerShape(18.dp)),
-            contentAlignment = Alignment.Center) {
-            ItemArt(p.icon, Modifier.size(40.dp).graphicsLayer { alpha = if (open) 1f else 0.35f }, gray = !open)
-            if (!open) ItemArt("locked", Modifier.size(24.dp).align(Alignment.BottomEnd))
+private fun MapPin(loc: Story.Location, cx: androidx.compose.ui.unit.Dp, cy: androidx.compose.ui.unit.Dp, news: Boolean, current: Boolean, onClick: () -> Unit) {
+    Column(Modifier.offset(cx - 60.dp, cy - 92.dp).width(120.dp).semantics { contentDescription = "Location ${loc.name}" }
+        .clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box {
+            Box(Modifier.size(56.dp).then(if (current) Modifier.bob(4f, 900) else Modifier).clip(androidx.compose.foundation.shape.CircleShape)
+                .background(Color.White).border(3.dp, if (current) Palette.Orange else Palette.Pink, androidx.compose.foundation.shape.CircleShape),
+                contentAlignment = Alignment.Center) { ItemArt(loc.icon, Modifier.size(36.dp)) }
+            if (news) Badge("!", Modifier.align(Alignment.TopEnd), color = Palette.Ruby)
         }
-        Text(p.name, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
+        Box(Modifier.padding(top = 2.dp).clip(RoundedCornerShape(50)).background(Color(0xE65B3220)).padding(horizontal = 8.dp, vertical = 2.dp)) {
+            Text(loc.name, style = MaterialTheme.typography.labelSmall, color = Color.White, textAlign = TextAlign.Center, maxLines = 2)
+        }
+    }
+}
+
+@Composable
+private fun LockedSpot(loc: Story.Location, cx: androidx.compose.ui.unit.Dp, cy: androidx.compose.ui.unit.Dp, onClick: () -> Unit) {
+    Box(Modifier.offset(cx - 80.dp, cy - 90.dp).size(160.dp, 120.dp).semantics { contentDescription = "Locked ${loc.name}" }.clickable(onClick = onClick),
+        contentAlignment = Alignment.Center) {
+        androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+            val c = Color(0xEEFFFFFF)
+            val w = size.width; val h = size.height
+            for ((fx, fy, fr) in listOf(Triple(0.3f, 0.55f, 0.24f), Triple(0.55f, 0.42f, 0.3f), Triple(0.75f, 0.58f, 0.22f), Triple(0.45f, 0.65f, 0.25f), Triple(0.2f, 0.68f, 0.16f)))
+                drawCircle(c, fr * w, androidx.compose.ui.geometry.Offset(fx * w, fy * h))
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 18.dp)) {
+            ItemArt("locked", Modifier.size(22.dp))
+            Text(loc.teaser, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center, color = Palette.CocoaSoft,
+                modifier = Modifier.width(120.dp))
+        }
+    }
+}
+
+/** A location's card on the map: its stories, each with progress, tap to go there. */
+@Composable
+fun LocationCard(vm: GameViewModel, state: GameState, id: String) {
+    val loc = Story.locations.firstOrNull { it.id == id } ?: return
+    val today = vm.today()
+    Card(vm, loc.name) {
+        if (loc.blurb.isNotEmpty()) Text(loc.blurb, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(8.dp))
+        for (pid in loc.places) {
+            val p = Story.places.firstOrNull { it.id == pid } ?: continue
+            val open = placeOpen(p, state, today)
+            val (title, progress) = placeSummary(p, state)
+            Panel(Modifier.fillMaxWidth().padding(vertical = 4.dp).semantics { contentDescription = "Story ${p.name}" }
+                .clickable { if (open) vm.openPlace(p.id) else vm.toast(lockedReason(p)) }, color = Color.White) {
+                Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    ItemArt(p.icon, Modifier.size(42.dp), gray = !open); Spacer(Modifier.width(8.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(p.name, style = MaterialTheme.typography.titleMedium)
+                        Text(if (open) title else lockedReason(p), style = MaterialTheme.typography.bodySmall)
+                        if (open) ProgressBar(progress, Modifier.fillMaxWidth().padding(top = 4.dp), if (p.event != null) Palette.Blue else Palette.Pink, 10.dp)
+                    }
+                    if (open && placeHasNews(p, state, today)) Badge("!", color = Palette.Ruby)
+                    if (!open) ItemArt("locked", Modifier.size(24.dp))
+                }
+            }
+        }
+    }
+}
+
+private fun lockedReason(p: Story.Place) =
+    if (p.event != null) "Opens with ${Events.byId(p.event)?.name ?: "its event"}"
+    else Story.chapters.getOrNull(p.chapter)?.opens?.let { "Opens ${it.month.name.lowercase().replaceFirstChar { c -> c.uppercase() }} ${it.dayOfMonth}" }
+        ?: "Finish Chapter ${p.chapter} to open"
+
+private fun placeSummary(p: Story.Place, state: GameState): Pair<String, Float> {
+    if (p.event != null) {
+        val ev = Events.byId(p.event) ?: return "" to 0f
+        val n = ev.decor.indices.count { ev.decorId(it) in state.eventDecor }
+        return "${ev.name} · $n / ${ev.decor.size} decorations" to n / ev.decor.size.toFloat()
+    }
+    val ch = Story.chapters.getOrNull(p.chapter) ?: return "" to 0f
+    val n = ch.tasks.count { it.id in state.tasksDone }
+    return "Chapter ${p.chapter + 1}: ${ch.title} · $n / ${ch.tasks.size}" to n / ch.tasks.size.toFloat()
+}
+
+/** One story place: its scene, next task or decoration, and finished moments to replay. */
+@Composable
+fun PlaceScreen(vm: GameViewModel, state: GameState, placeId: String) {
+    val place = Story.places.firstOrNull { it.id == placeId } ?: Story.places.first()
+    val done = state.tasksDone + state.eventDecor
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+        ScreenHeader(vm, state, place.name, back = Screen.BAKERY)
+        LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (place.event != null) eventPlace(vm, state, place, done) else chapterPlace(vm, state, place, done, Story.chapterIndex(state.tasksDone))
+        }
     }
 }
 
@@ -116,7 +226,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.chapterPlace(vm: Game
     val chapter = Story.chapters[place.chapter]
     val count = chapter.tasks.count { it.id in state.tasksDone }
     val current = place.chapter == chIdx
-    val next = if (current) Story.nextTask(state.tasksDone) else null
+    val next = if (current) Story.nextTask(state.tasksDone, vm.today()) else null
     item {
         Panel(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(10.dp)) {

@@ -117,6 +117,7 @@ fun DialogHost(vm: GameViewModel, state: GameState, ui: Ui, particles: Particles
                 Dialog.Storage -> StorageDialog(vm, state)
                 is Dialog.Visit -> {}
                 Dialog.Customize -> CustomizeDialog(vm, state)
+                is Dialog.Location -> LocationCard(vm, state, dlg.id)
             }
         }
     }

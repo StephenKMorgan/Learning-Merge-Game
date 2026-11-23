@@ -59,6 +59,7 @@ object Engine {
             generators = Content.generators.associate { it.id to GenState(it.charges) },
             discovered = board.mapNotNull { if (it.boxed) null else it.item }.toSet(),
             passSeason = season(today),
+            obstacleChapter = 0,   // the packing boxes are chapter 1's obstacles
         )
     }
 
@@ -87,6 +88,10 @@ object Engine {
         // Shop stock resets each day
         val day = today.toString()
         if (s.shopDay != day) s = s.copy(shopDay = day, shopBought = emptyMap())
+        // Daily specials and the weekly mini-event roll over
+        if (s.goalsDay != day) s = s.copy(goalsDay = day, dayStart = s.counters, dailyGoalsClaimed = emptySet())
+        val week = Goals.weekId(today)
+        if (s.weekId != week) s = s.copy(weekId = week, weekPts = 0, weekClaimed = emptySet())
         // Pass season
         val season = season(today)
         if (s.passSeason != season) s = s.copy(passSeason = season, passPts = 0, passClaimedFree = emptySet(), passClaimedVip = emptySet())
@@ -99,6 +104,7 @@ object Engine {
         }
         // Generators unlocked by level that aren't on the board yet (e.g. after an update adds one)
         s = giveMissingGenerators(s)
+        s = Obstacles.lay(s, today, rnd)
         s = fillOrders(s, today, rnd)
         return Outcome(s.copy(lastSeen = now), fx)
     }
@@ -143,7 +149,7 @@ object Engine {
 
     fun nearestEmpty(board: List<Cell>, from: Int): Int? {
         val fr = from / BOARD_COLS; val fc = from % BOARD_COLS
-        return board.indices.filter { board[it].item == null && !board[it].boxed }
+        return board.indices.filter { board[it].item == null && !board[it].locked }
             .minWithOrNull(compareBy<Int>({ val r = it / BOARD_COLS; val c = it % BOARD_COLS; maxOf(abs(r - fr), abs(c - fc)) },
                 { val r = it / BOARD_COLS; val c = it % BOARD_COLS; abs(r - fr) + abs(c - fc) }, { it }))
     }
@@ -153,6 +159,7 @@ object Engine {
         val cell = s.board[i]
         val item = cell.item ?: return Outcome(s)
         if (cell.boxed) return Outcome(s, listOf(Fx.Message("Merge something next to this box to open it.")))
+        if (cell.cover.isNotEmpty()) return Outcome(s, listOf(Fx.Message(Obstacles.hint(cell))))
         if (Content.isGenerator(item)) return useGenerator(s, i, now, rnd)
         val ch = Content.chainOf(item) ?: return Outcome(s)
         if (ch.collect != null) {
@@ -247,10 +254,18 @@ object Engine {
         val a = s.board[from]
         val b = s.board[to]
         val item = a.item ?: return Outcome(s)
-        if (a.boxed) return Outcome(s)
+        if (a.locked) return Outcome(s)
         val board = s.board.toMutableList()
-        // Merge
-        if (b.item == item && Content.next(item) != null && !Content.isGenerator(item)) {
+        // Deliver the item a crate is asking for
+        if (b.cover == "crate") {
+            if (item != b.need) return Outcome(s, listOf(Fx.Error, Fx.Message(Obstacles.hint(b))))
+            board[from] = Cell()
+            board[to] = b.copy(cover = "", need = "", hp = 0, uid = s.nextUid)
+            return Outcome(s.copy(board = board, nextUid = s.nextUid + 1, counters = s.counters + ("cleared" to s.count("cleared") + 1)),
+                listOf(Fx.Unbox(to)))
+        }
+        // Merge (you can merge into a packing box, but not into an obstacle)
+        if (b.item == item && b.cover.isEmpty() && Content.next(item) != null && !Content.isGenerator(item)) {
             val result = Content.next(item)!!
             board[from] = Cell()
             board[to] = Cell(result, uid = s.nextUid)
@@ -258,7 +273,16 @@ object Engine {
             val fx = mutableListOf<Fx>(Fx.Merge(to, result))
             // Open neighbouring boxes
             for (n in neighbours(to)) if (board[n].boxed) { board[n] = board[n].copy(boxed = false, uid = uid++); fx += Fx.Unbox(n) }
-            var ns = s.copy(board = board, nextUid = uid, counters = s.counters + ("merges" to s.count("merges") + 1))
+            // Wear down obstacles next to the merge
+            var cleared = 0
+            for (n in neighbours(to)) {
+                val c = board[n]
+                if (c.cover.isEmpty() || c.cover == "crate") continue
+                if (c.hp <= 1) { board[n] = c.copy(cover = "", hp = 0, uid = uid++); fx += Fx.Unbox(n); cleared++ }
+                else board[n] = c.copy(hp = c.hp - 1)
+            }
+            var ns = s.copy(board = board, nextUid = uid, counters = s.counters + ("merges" to s.count("merges") + 1) +
+                if (cleared > 0) mapOf("cleared" to s.count("cleared") + cleared) else emptyMap())
             if (result !in ns.discovered) {
                 ns = ns.copy(discovered = ns.discovered + result)
                 fx += Fx.Discover(result)
@@ -266,7 +290,7 @@ object Engine {
             }
             return Outcome(ns, fx)
         }
-        if (b.boxed) return Outcome(s, listOf(Fx.Error))
+        if (b.locked) return Outcome(s, listOf(Fx.Error))
         if (b.item == null) {
             board[to] = a; board[from] = Cell()
         } else {
@@ -285,7 +309,7 @@ object Engine {
 
     fun sell(s: GameState, i: Int): Outcome {
         val item = s.board[i].item ?: return Outcome(s)
-        if (s.board[i].boxed) return Outcome(s)
+        if (s.board[i].locked) return Outcome(s)
         val price = Content.sellPrice(item)
         if (price <= 0) return Outcome(s, listOf(Fx.Error))
         val board = s.board.toMutableList().also { it[i] = Cell() }
@@ -294,7 +318,7 @@ object Engine {
 
     fun store(s: GameState, i: Int): Outcome {
         val item = s.board[i].item ?: return Outcome(s)
-        if (s.board[i].boxed) return Outcome(s)
+        if (s.board[i].locked) return Outcome(s)
         val slot = s.storage.indexOfFirst { it == null }
         if (slot < 0) return Outcome(s, listOf(Fx.Error, Fx.Message("The pantry shelf is full.")))
         val board = s.board.toMutableList().also { it[i] = Cell() }
@@ -343,7 +367,7 @@ object Engine {
     fun orderCells(s: GameState, o: Order): List<Int>? {
         val used = mutableSetOf<Int>()
         for (w in o.wants) {
-            val i = s.board.indices.firstOrNull { it !in used && s.board[it].item == w && !s.board[it].boxed } ?: return null
+            val i = s.board.indices.firstOrNull { it !in used && s.board[it].item == w && !s.board[it].locked } ?: return null
             used += i
         }
         return used.toList()
@@ -355,7 +379,8 @@ object Engine {
         val board = s.board.toMutableList()
         cells.forEach { board[it] = Cell() }
         var ns = s.copy(board = board, orders = s.orders.filter { it.id != orderId }, coins = s.coins + o.coins,
-            passPts = s.passPts + o.pts, counters = s.counters + ("orders" to s.count("orders") + 1))
+            passPts = s.passPts + o.pts, counters = s.counters + ("orders" to s.count("orders") + 1),
+            weekPts = s.weekPts + Goals.orderPoints(o, today))
         val fx = mutableListOf<Fx>(Fx.OrderDone(orderId, o.coins))
         val xo = addXp(ns, o.xp)
         ns = xo.state; fx += xo.fx
@@ -423,9 +448,9 @@ object Engine {
         vipSeason = if (r.vip && today != null) season(today) else s.vipSeason,
     )
 
-    fun completeTask(s: GameState, taskId: String): Outcome {
+    fun completeTask(s: GameState, taskId: String, today: LocalDate? = null): Outcome {
         val t = Story.task(taskId) ?: return Outcome(s)
-        if (taskId in s.tasksDone || Story.nextTask(s.tasksDone)?.id != taskId) return Outcome(s)
+        if (taskId in s.tasksDone || Story.nextTask(s.tasksDone, today)?.id != taskId) return Outcome(s)
         if (s.coins < t.cost) return Outcome(s, listOf(Fx.Error, Fx.Message("You need ${t.cost - s.coins} more coins. Fill some orders!")))
         var ns = s.copy(coins = s.coins - t.cost, tasksDone = s.tasksDone + taskId)
         val fx = mutableListOf<Fx>()
@@ -477,7 +502,7 @@ object Engine {
     fun turnInEvent(s: GameState, i: Int): Outcome {
         val item = s.board[i].item ?: return Outcome(s)
         val ch = Content.chainOf(item) ?: return Outcome(s)
-        if (ch.event == null || ch.event != s.eventId || s.board[i].boxed) return Outcome(s)
+        if (ch.event == null || ch.event != s.eventId || s.board[i].locked) return Outcome(s)
         val pts = Events.points(Content.level(item))
         val board = s.board.toMutableList().also { it[i] = Cell() }
         return Outcome(s.copy(board = board, eventPts = s.eventPts + pts), listOf(Fx.Message("+$pts event points!"), Fx.Sold))
@@ -491,6 +516,32 @@ object Engine {
         return Outcome(grant(s, r).copy(eventClaimed = s.eventClaimed + milestone, eventDecor = decor), listOf(Fx.Granted(r)))
     }
 
+    // ---------------------------------------------------------------- goals
+
+    fun claimDailyGoal(s: GameState, id: String, today: LocalDate): Outcome {
+        val g = Goals.today(today).firstOrNull { it.id == id } ?: return Outcome(s)
+        if (id in s.dailyGoalsClaimed || Goals.progress(s, g) < g.target) return Outcome(s)
+        return Outcome(grant(s, g.reward).copy(dailyGoalsClaimed = s.dailyGoalsClaimed + id), listOf(Fx.Granted(g.reward)))
+    }
+
+    fun claimDailyBonus(s: GameState, today: LocalDate): Outcome {
+        if ("bonus" in s.dailyGoalsClaimed || !Goals.today(today).all { it.id in s.dailyGoalsClaimed }) return Outcome(s)
+        return Outcome(grant(s, Goals.dailyBonus).copy(dailyGoalsClaimed = s.dailyGoalsClaimed + "bonus"), listOf(Fx.Granted(Goals.dailyBonus)))
+    }
+
+    fun claimWeek(s: GameState, i: Int): Outcome {
+        val (need, r) = Goals.weekMilestones.getOrNull(i) ?: return Outcome(s)
+        if (s.weekPts < need || i in s.weekClaimed) return Outcome(s)
+        return Outcome(grant(s, r).copy(weekClaimed = s.weekClaimed + i), listOf(Fx.Granted(r)))
+    }
+
+    /** Something on the Goals screen can be claimed. */
+    fun goalsReady(s: GameState, today: LocalDate): Boolean =
+        dailyAvailable(s, today) ||
+            Goals.today(today).any { it.id !in s.dailyGoalsClaimed && Goals.progress(s, it) >= it.target } ||
+            (Goals.today(today).all { it.id in s.dailyGoalsClaimed } && "bonus" !in s.dailyGoalsClaimed) ||
+            Goals.weekMilestones.withIndex().any { (i, m) -> s.weekPts >= m.first && i !in s.weekClaimed }
+
     // ---------------------------------------------------------------- puzzles
 
     /** Logs a puzzle result and lets the difficulty model learn from it. Returns the state and bonus flag. */
@@ -502,7 +553,7 @@ object Engine {
         val old = Brain.factor(s, type)
         val rec = PuzzleRecord(type.name, level, solved, mistakes, hints, seconds, now, bonus, old)
         val log = (s.puzzleLog + rec).takeLast(1000)
-        return s.copy(brain = s.brain + (type.name to Brain.updatedFactor(old, perf)), puzzleLog = log,
-            counters = s.counters + ("puzzles" to s.count("puzzles") + 1)) to bonus
+        val counters = s.counters + ("puzzles" to s.count("puzzles") + 1) + if (solved) mapOf("solved" to s.count("solved") + 1) else emptyMap()
+        return s.copy(brain = s.brain + (type.name to Brain.updatedFactor(old, perf)), puzzleLog = log, counters = counters) to bonus
     }
 }

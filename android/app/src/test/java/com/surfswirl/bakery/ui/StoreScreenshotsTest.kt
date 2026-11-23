@@ -61,6 +61,7 @@ class StoreScreenshotsTest {
             seenStory = setOf("intro"), tutorial = 5, lastDaily = day.toString(), dailyClaims = 3,
             eventId = "harvest", eventPts = 64, passSeason = Engine.season(day), passPts = 95,
             discovered = board.mapNotNull { it.item }.toSet(),
+            obstacleChapter = -1,   // lay this chapter's obstacles, so the screenshot shows them
         )
     }
 
@@ -76,16 +77,24 @@ class StoreScreenshotsTest {
         load(midGame(9))
         rule.mainClock.advanceTimeBy(4000)
         rule.shot("store-1-board")
-        rule.vm().go(Screen.BAKERY)
+        rule.vm().go(Screen.GOALS)
+        rule.waitText("Today's specials")
+        rule.shot("store-6-goals")
+        rule.vm().go(Screen.BOARD)
+        rule.vm().openPlace("bakery")
         rule.waitText("Next task")
         rule.mainClock.advanceTimeBy(2000)
         rule.shot("store-2-bakery")
         rule.vm().go(Screen.BOARD)
         load(midGame(Story.chapters[0].tasks.size + 6))
-        rule.vm().go(Screen.BAKERY)
+        rule.vm().openPlace("patio")
         rule.waitText("Next task")
         rule.mainClock.advanceTimeBy(2000)
         rule.shot("store-3-patio")
+        rule.vm().go(Screen.BAKERY)
+        rule.waitDesc("Map of Maple Lane")
+        rule.mainClock.advanceTimeBy(1500)
+        rule.shot("store-5-map")
         rule.vm().go(Screen.SHOP)
         rule.waitText("Brain Shop")
         rule.mainClock.advanceTimeBy(2000)

@@ -111,6 +111,8 @@ fun App(vm: GameViewModel) {
                 when (screen) {
                     Screen.BOARD -> BoardScreen(vm, state, ui, geo)
                     Screen.BAKERY -> BakeryScreen(vm, state)
+                    Screen.PLACE -> com.surfswirl.bakery.ui.screens.PlaceScreen(vm, state, ui.place)
+                    Screen.GOALS -> com.surfswirl.bakery.ui.screens.GoalsScreen(vm, state)
                     Screen.SHOP -> ShopScreen(vm, state)
                     Screen.PASS -> PassScreen(vm, state)
                     Screen.EVENT -> EventScreen(vm, state)

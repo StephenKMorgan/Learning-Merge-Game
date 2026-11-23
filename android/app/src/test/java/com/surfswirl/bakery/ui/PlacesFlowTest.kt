@@ -59,13 +59,21 @@ class PlacesFlowTest {
         rule.runOnUiThread { while (rule.vm().ui.value.dialogs.isNotEmpty()) rule.vm().closeDialog() }
         rule.mainClock.advanceTimeBy(3000)
 
-        // Chapter 3 opens on the kitchen
+        // The map, with the cottage open (it's December) and future places under clouds
         rule.vm().go(Screen.BAKERY)
+        rule.waitDesc("Location Grandma June's Cottage")
+        rule.mainClock.advanceTimeBy(1500)
+        rule.shot("places-0-map")
+        // Chapter 3 is in the bakery's kitchen
+        rule.tapDesc("Location Surf & Swirl Bakery")
+        rule.waitDesc("Story Kitchen")
+        rule.shot("places-0b-bakery-stories")
+        rule.tapDesc("Story Kitchen")
         rule.waitText("Cinnamon Famous")
         rule.shot("places-1-kitchen")
 
         // Visit the finished bakery, explore it full screen, and tap the bell
-        rule.tapDesc("Place Bakery")
+        rule.vm().openPlace("bakery")
         rule.waitText("The Grand Reopening")
         rule.shot("places-2-bakery-visit")
         rule.tapDesc("Explore")
@@ -88,7 +96,8 @@ class PlacesFlowTest {
         repeat(2) { rule.tapDesc("Claim"); rule.finishDialogue() }
         assertTrue("frosty_3" in rule.vm().state.value.eventDecor)
         rule.vm().go(Screen.BAKERY)
-        rule.tapDesc("Place Cottage")
+        rule.tapDesc("Location Grandma June's Cottage")
+        rule.tapDesc("Story Cottage")
         rule.waitText("decorations")
         rule.mainClock.advanceTimeBy(2000)
         rule.shot("places-7-cottage")

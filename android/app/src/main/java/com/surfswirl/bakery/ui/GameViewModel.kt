@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.random.Random
 
-enum class Screen { BOARD, BAKERY, SHOP, PASS, EVENT, SETTINGS, STATS, PUZZLE }
+enum class Screen { BOARD, BAKERY, SHOP, PASS, EVENT, SETTINGS, STATS, PUZZLE, PLACE, GOALS }
 
 /** Why the player is solving puzzles, and what they get at the end. */
 sealed interface Purpose {
@@ -79,6 +79,8 @@ sealed interface Dialog {
     /** Full-screen look around a story place: pinch to zoom, tap things to hear their story. */
     data class Visit(val scene: String) : Dialog
     data object Customize : Dialog
+    /** A map location's card: its stories (places) and progress. */
+    data class Location(val id: String) : Dialog
 }
 
 data class Ui(
@@ -88,6 +90,8 @@ data class Ui(
     val puzzle: PuzzleSession? = null,
     val toast: String? = null,
     val toastId: Long = 0,
+    /** The story place open on the PLACE screen. */
+    val place: String = "bakery",
 )
 
 class GameViewModel(
@@ -231,7 +235,7 @@ class GameViewModel(
         }
         m.setStyles(styles)
         val ready = s.orders.count { Engine.orderCells(s, it) != null }
-        val filled = s.board.count { it.item != null && !it.boxed }.toFloat() / s.board.size
+        val filled = s.board.count { it.item != null && !it.locked }.toFloat() / s.board.size
         m.setIntensity(0.3f + 0.15f * ready + 0.45f * filled)
     }
 
@@ -259,6 +263,12 @@ class GameViewModel(
         music?.enabled = _state.value.settings.music
     }
 
+    /** Opens a story place (from the map). */
+    fun openPlace(id: String) {
+        sfx?.play(Sound.WHOOSH)
+        _ui.update { it.copy(screen = Screen.PLACE, place = id, selected = null, dialogs = it.dialogs.filter { d -> d !is Dialog.Location }) }
+    }
+
     fun go(screen: Screen) {
         sfx?.play(Sound.TAP)
         _ui.update { it.copy(screen = screen, selected = null) }
@@ -271,6 +281,7 @@ class GameViewModel(
             Screen.BOARD -> false
             Screen.PUZZLE -> { quitPuzzle(); true }
             Screen.STATS -> { go(Screen.SETTINGS); true }
+            Screen.PLACE -> { go(Screen.BAKERY); true }
             else -> { go(Screen.BOARD); true }
         }
     }
@@ -285,7 +296,7 @@ class GameViewModel(
         if (item == null) { _ui.update { it.copy(selected = null) }; return }
         val wasSelected = _ui.value.selected == i
         _ui.update { it.copy(selected = i) }
-        if (cell.boxed) { apply(Engine.tap(s, i, now(), today(), rnd)); return }
+        if (cell.locked) { apply(Engine.tap(s, i, now(), today(), rnd)); return }
         if (Content.isGenerator(item)) {
             val gid = Content.genId(item)
             val g = s.generators[gid]
@@ -361,7 +372,7 @@ class GameViewModel(
 
     fun doTask(id: String) {
         val before = _state.value
-        val o = Engine.completeTask(before, id)
+        val o = Engine.completeTask(before, id, today())
         apply(o)
         if (id in o.state.tasksDone && id !in before.tasksDone) {
             sfx?.play(Sound.SPARKLE); haptics?.celebrate()
@@ -381,6 +392,10 @@ class GameViewModel(
         apply(Engine.claimDaily(_state.value, today()))
         closeDialog()
     }
+
+    fun claimDailyGoal(id: String) = apply(Engine.claimDailyGoal(_state.value, id, today()))
+    fun claimDailyBonus() = apply(Engine.claimDailyBonus(_state.value, today()))
+    fun claimWeek(i: Int) = apply(Engine.claimWeek(_state.value, i))
 
     fun claimFreeTreat() = apply(Engine.claimFreeTreat(_state.value, today()))
     fun claimPass(tier: Int, vip: Boolean) = apply(Engine.claimPass(_state.value, tier, vip, today()))

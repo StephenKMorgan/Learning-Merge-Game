@@ -1,6 +1,6 @@
-Chapter 3 and a holiday surprise! 🎄🥐
+A map of Maple Lane, new board challenges, and daily goals! 🗺️🐶
 
-- New chapter: "Cinnamon Famous". A famous food critic is coming, so fix up the bakery's back kitchen and win the Golden Whisk
-- Walk around Maple Lane: visit the bakery, patio and kitchen any time, explore them full screen, and tap anything to relive its story
-- Make Mandy your own: give her a name and pick her hairstyle, hair color, skin tone, apron and glasses in Settings → Your baker
-- Frosty Holidays (from December 1): Grandma June lends you her cottage on the hill. Every event milestone decorates it a little more, all the way to Surf's Santa hat
+- Maple Lane is now a map: tap the bakery or Grandma June's cottage to see their stories, and peek at the places still under clouds
+- Every new chapter brings new board obstacles to clear, with a surprise under each one: cobwebs, flour sacks, fallen leaves, snow drifts and delivery crates
+- The board changes colors with each chapter
+- New Goals screen: three daily specials (new every day), a bonus for finishing them all, and a weekly themed event like Fruit Fiesta or Bread Week

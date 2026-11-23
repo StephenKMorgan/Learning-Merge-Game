@@ -20,12 +20,16 @@ Event dates are fixed in `Events.kt`. "Ship by" leaves ~10 days of slack before 
 | Release | Ship by | Event (dates) | Chapter | Event story place | Gameplay extra |
 |---|---|---|---|---|---|
 | ✅ 1.2.0 | Nov 23 | Frosty Holidays (Dec 1–Jan 6) | 3 · Cinnamon Famous (kitchen) | Grandma June's Cottage | Places, explore, customizer |
-| 1.3.0 | **Jan 20** | Sweetheart Days (Feb 1–15) | 4 · Home Above the Bakery (the cozy loft upstairs) | Valentine's Tea Room (date night in the café) | Puzzle: Logic Grid riddles |
-| 1.4.0 | **Mar 10** | Spring Bloom (Mar 20–Apr 30) | 5 · Saturday Market (a stall at the farmers' market) | Bea's Greenhouse | Item chain: Pies & Tarts + generator |
-| 1.5.0 | **Jun 8** | Surf's Summer (Jun 20–Aug 15) | 6 · Surf's Beach Café (a café cart by the waves) | Kai's Beach Shack | Collection book with rewards |
-| 1.6.0 | **Sep 20** | Spooky Season (Oct 1–31) | 7 · The Bakery Garden (orchard + herb garden) | The Pumpkin Patch | Puzzle: Truth-tellers (from Therefore) |
-| 1.7.0 | **Oct 20** | Harvest Festival (Nov 1–30) | 8 · The Great Maple Lane Bake-Off | Apple Orchard Barn | Generator upgrades |
-| 1.8.0 | **Nov 20** | Frosty Holidays, year 2 | 9 · (tbd) | Cottage, year 2: new decorations | Achievements |
+| 1.3.0 | **mid-Dec** | (architecture) | – | – | Map of Maple Lane, board obstacles per chapter, daily specials + weekly mini-events, time-released chapters, scene kit |
+| 1.4.0 | **Jan 20** | Sweetheart Days (Feb 1–15) | 4 · Home Above the Bakery (loft) + 5 · Saturday Market (opens Mar 1) | Rose Tea Room | Puzzle: Logic Grid riddles |
+| 1.5.0 | **Mar 10** | Spring Bloom (Mar 20–Apr 30) | 6 · Surf's Beach Café (opens Jun 1) | Bea's Greenhouse | Item chain: Pies & Tarts + generator |
+| 1.6.0 | **Jun 8** | Surf's Summer (Jun 20–Aug 15) | 7 · The Bakery Garden | Kai's Beach Shack | Collection book with rewards |
+| 1.7.0 | **Sep 20** | Spooky Season (Oct 1–31) | 8 · The Great Maple Lane Bake-Off | The Pumpkin Patch | Puzzle: Truth-tellers (from Therefore) |
+| 1.8.0 | **Oct 20** | Harvest Festival (Nov 1–30) | 9 · (tbd) | Apple Orchard Barn | Generator upgrades |
+| 1.9.0 | **Nov 20** | Frosty Holidays, year 2 | 10 · (tbd) | Cottage, year 2: new decorations | Achievements |
+
+From 1.4.0 each release carries **two chapters**: one open right away and one that opens on a date (`Chapter.opens`).
+Map locations for every planned place already exist (under clouds), so a release just fills one in.
 
 Gaps (Feb 15–Mar 20, May–June, Aug 15–Oct 1) are where **weekly mini-events** (planned for 1.5.0+) keep things
 fresh without a release.
@@ -51,13 +55,16 @@ Before 1.3.0, decide one of:
    (e.g. "Chapter 5 opens March 1"), or
 3. **Repeatable goals** between chapters (daily specials, mini-events) so there's always something to work toward.
 
-Recommended: **2 + 3**. Check how far she is (Maple Lane screen) before each release to tune it.
+Decided: **2 + 3** (two chapters per release, one time-released; daily specials and weekly mini-events, in 1.3.0).
+Check how far she is on the map before each release to tune costs.
 
 ## Per-release checklist
 
 1. Script: chapter lines + event intro/decor lines (keep writing "Mandy"; it's personalized automatically).
 2. Data: tasks, costs, `Story.Place`, `EventDef.scene/decor/intro` (see CLAUDE.md "How to add things").
-3. Art: scene file in `tools/scenes/`, Mandy via `mandy_layers(...)`, render with previews, check before/after.
+3. Art: build the scene with the kit (`room()` + `item()` on anchors, `kit.py`); draw new props only when the
+   catalog doesn't have one, and add them to `PROPS`. Mandy via the kit's `mandy=` or `mandy_layers(...)`.
+   Render with previews and check before/after. Add the place to its map location in `Story.locations`.
 4. Gameplay extra + its tests.
 5. Tests: engine (task order, rewards), a places/flow test, store screenshots refresh.
 6. Listen check if music changed (`MusicEngineTest` samples).
@@ -68,3 +75,5 @@ Recommended: **2 + 3**. Check how far she is (Maple Lane screen) before each rel
 
 - 2026-11: wanted hand-drawn art with proper layout (done 1.1.0), dynamic music (done 1.1.0), places to revisit,
   event stories, customizable character and name (done 1.2.0).
+- 2026-11: wanted a map instead of a row of places, a parts library for cheaper levels, and a board that changes
+  with chapters (the packing boxes were gone fast). All in 1.3.0.

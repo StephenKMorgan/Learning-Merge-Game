@@ -34,7 +34,22 @@ fully offline. In-game "purchases" are paid with brain puzzles instead of money.
   name (`Avatar.personalize`).
 - `tools/` — `prepare_art.py` (downloads Fluent emoji + converts to WebP), `make_cinnamon_art.py`,
   `make_sfx.py`, `make_icon.py`,
-  `scenes/` (`make_scenes.py` renders the scene SVGs in `inside.py` / `patio.py` / `common.py` with Chromium).
+  `scenes/` (`make_scenes.py` renders the scene SVGs in `inside.py` / `patio.py` / `kitchen.py` / `cottage.py` /
+  `common.py` with Chromium; `map.py` draws the Maple Lane map and writes pin spots to `assets/scenes/map.json`).
+- **Scene kit** (`tools/scenes/kit.py`): build new places from parts instead of drawing from scratch. `PROPS` lists
+  every prop with how it mounts (floor / surface / wall / ceiling / sky); `room(wall, floor, counter=…)` gives a
+  base and named anchors (`counter_top_right`, `wall_left`, `ceiling_center`, `floor_front_left`…); `scene_layers()`
+  turns `item(id, prop, anchor, task=…)` lists into layers, so things always sit where they belong. Browse the
+  props in `docs/kit-catalog.png` (regenerate with `python3 tools/scenes/kit.py docs`). Add new props to `PROPS`.
+- **Map & places**: `Story.locations` (map pins; ids match `map.py` spots) each hold `Story.places` (a chapter's or
+  event's scene). Locations with nothing open sit under clouds with their `teaser`. `ui/screens/PlacesScreen.kt`
+  has the map (`BakeryScreen`), the location card and `PlaceScreen`.
+- **Board obstacles** (`game/Obstacles.kt`): each new chapter lays ~8 obstacles on empty squares (never over items),
+  themed per chapter (cobwebs, leaves, flour sacks, snow drifts in Frosty), plus 2 delivery crates; each hides a
+  reward. Cells carry `cover`/`hp`/`need`; use `Cell.locked` for "can't touch". Board colours follow the chapter.
+- **Goals** (`game/Goals.kt`, Goals screen): 3 daily specials (progress = counters minus `dayStart`) + a bonus,
+  and a weekly themed mini-event (orders = points, theme orders double, 5 milestones, resets Monday).
+- **Time-released chapters**: `Chapter.opens` (a date) keeps a shipped chapter closed until that day.
 
 ## Save compatibility (most important rule)
 

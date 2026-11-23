@@ -86,7 +86,13 @@ class AppFlowTest {
         rule.tapDesc("Close")
 
         // Fix up the bakery
-        rule.tapDesc("Bakery")
+        rule.tapDesc("Map")
+        rule.waitDesc("Location Surf & Swirl Bakery")
+        rule.shot("07a-map")
+        rule.tapDesc("Location Surf & Swirl Bakery")
+        rule.waitDesc("Story Bakery")
+        rule.shot("07b-location")
+        rule.tapDesc("Story Bakery")
         rule.waitText("Next task")
         rule.shot("07-bakery")
         rule.tapDesc("Do it!")
@@ -95,7 +101,9 @@ class AppFlowTest {
         rule.finishDialogue()
         assertTrue("c1_sweep" in rule.vm().state.value.tasksDone)
         rule.shot("09-bakery-after")
-        rule.tapDesc("Back")
+        rule.tapDesc("Back")          // to the map
+        rule.waitDesc("Map of Maple Lane")
+        rule.tapDesc("Back")          // to the board
 
         // Shop: buy an Energy Snack with a Quick Math puzzle
         rule.tapDesc("Shop")
@@ -139,10 +147,14 @@ class AppFlowTest {
         rule.waitText("points")
         rule.shot("16-event")
         rule.tapDesc("Back")
-        rule.tapDesc("Daily")
+        rule.tapDesc("Goals")
+        rule.waitText("Today's specials")
+        rule.shot("17a-goals")
+        rule.tapDesc("Open")
         rule.waitText("Day 1")
         rule.shot("17-daily")
         rule.tapDesc("Claim")
+        rule.tapDesc("Back")
         rule.tapDesc("Settings")
         rule.waitText("Popups")
         rule.shot("18-settings")
