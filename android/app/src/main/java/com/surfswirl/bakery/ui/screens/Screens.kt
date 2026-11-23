@@ -101,63 +101,6 @@ fun ScreenHeader(vm: GameViewModel, state: GameState, title: String, back: Scree
     }
 }
 
-// =================================================================== Bakery
-
-@Composable
-fun BakeryScreen(vm: GameViewModel, state: GameState) {
-    val chIdx = Story.chapterIndex(state.tasksDone)
-    val chapter = Story.chapters.getOrNull(chIdx) ?: Story.chapters.last()
-    val done = chapter.tasks.count { it.id in state.tasksDone }
-    val next = Story.nextTask(state.tasksDone)
-    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
-        ScreenHeader(vm, state, "Surf & Swirl Bakery")
-        LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            item {
-                Panel(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(10.dp)) {
-                        Text("Chapter ${minOf(chIdx, Story.chapters.size - 1) + 1}: ${chapter.title}", style = MaterialTheme.typography.titleLarge)
-                        Spacer(Modifier.height(4.dp))
-                        ProgressBar(done.toFloat() / chapter.tasks.size, Modifier.fillMaxWidth(), Palette.Pink, 18.dp, "$done / ${chapter.tasks.size} tasks")
-                        Spacer(Modifier.height(8.dp))
-                        SceneView(chapter.scene, state.tasksDone, next?.id, onSurf = { vm.woof() })
-                    }
-                }
-            }
-            item {
-                if (next != null) Panel(Modifier.fillMaxWidth(), color = Color(0xFFFFF6D6)) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        ItemArt(next.art, Modifier.size(64.dp).bob(3f))
-                        Spacer(Modifier.width(10.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text("Next task", style = MaterialTheme.typography.bodySmall)
-                            Text(next.title, style = MaterialTheme.typography.titleMedium)
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                ItemArt("coin", Modifier.size(20.dp)); Text(" ${next.cost}", style = MaterialTheme.typography.titleSmall)
-                            }
-                        }
-                        val can = state.coins >= next.cost
-                        CandyButton(if (can) "Do it!" else "Need ${next.cost - state.coins}", Modifier.width(132.dp).pulse(can),
-                            enabled = can, color = Palette.Pink, dark = Palette.PinkDark) { vm.doTask(next.id) }
-                    }
-                } else Panel(Modifier.fillMaxWidth()) {
-                    Text("Every task is done! The next chapter arrives in a future update. Keep baking for coins and rewards.",
-                        Modifier.padding(16.dp), style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-                }
-            }
-            item { Text("Finished tasks (tap to replay the story)", style = MaterialTheme.typography.titleSmall) }
-            items(Story.allTasks().filter { it.id in state.tasksDone }.reversed(), key = { it.id }) { t ->
-                Panel(Modifier.fillMaxWidth().clickable { vm.pushDialog(Dialog.Talk(t.after, t.title)) }) {
-                    Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        ItemArt(t.art, Modifier.size(36.dp)); Spacer(Modifier.width(8.dp))
-                        Text(t.title, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-                        Text("✓", color = Palette.Green, style = MaterialTheme.typography.titleLarge)
-                    }
-                }
-            }
-        }
-    }
-}
-
 // =================================================================== Shop
 
 @Composable
@@ -338,6 +281,18 @@ fun EventScreen(vm: GameViewModel, state: GameState) {
                     }
                 }
             }
+            if (ev.scene != null) item {
+                Panel(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(10.dp)) {
+                        Text(ev.place, style = MaterialTheme.typography.titleLarge)
+                        Text("Every milestone you claim decorates a little more of the cottage.", style = MaterialTheme.typography.bodySmall)
+                        Spacer(Modifier.height(6.dp))
+                        val next = ev.milestones.indices.firstOrNull { it !in state.eventClaimed }
+                        SceneView(ev.scene, state.tasksDone + state.eventDecor, next?.let { ev.decorId(it) },
+                            onTapLayer = { vm.sceneTap(it) }, onExpand = { vm.pushDialog(Dialog.Visit(ev.scene)) })
+                    }
+                }
+            }
             itemsIndexed(ev.milestones) { i, (need, r) ->
                 val reached = state.eventPts >= need
                 val claimed = i in state.eventClaimed
@@ -346,7 +301,10 @@ fun EventScreen(vm: GameViewModel, state: GameState) {
                         Box(Modifier.size(44.dp).clip(CircleShape).background(if (reached) LocalGameColors.current.accent else Palette.Gray),
                             contentAlignment = Alignment.Center) { OutlinedText("$need", 13) }
                         Spacer(Modifier.width(10.dp))
-                        RewardRow(r, Modifier.weight(1f), size = 34.dp)
+                        Column(Modifier.weight(1f)) {
+                            ev.decor.getOrNull(i)?.let { Text(it.first, style = MaterialTheme.typography.titleSmall) }
+                            RewardRow(r, size = 30.dp)
+                        }
                         when {
                             claimed -> OutlinedText("✓", 26, color = Palette.Green, outline = Color.White)
                             reached -> CandyButton("Claim", Modifier.width(96.dp).pulse(), small = true) { vm.claimEvent(i) }

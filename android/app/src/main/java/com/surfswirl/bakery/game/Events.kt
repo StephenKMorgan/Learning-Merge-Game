@@ -33,7 +33,15 @@ data class EventDef(
     val icon: String,
     val blurb: String,
     val milestones: List<Pair<Int, Reward>>,
+    /** Optional event story: a place that gets one more decoration for each milestone claimed. */
+    val scene: String? = null,
+    val place: String = "",
+    /** (title, story lines) per milestone, in order. Decoration ids are "<event>_<n>" (1-based). */
+    val decor: List<Pair<String, List<Line>>> = emptyList(),
+    val intro: List<Line> = emptyList(),
 ) {
+    fun decorId(milestone: Int) = "${id}_${milestone + 1}"
+
     val generator get() = GeneratorDef("event_$id", "$name Basket", "shopping_bags", listOf(chain to 100), 20, 30, 1,
         "Tap for $name items. Merge them up and turn them in for event points!", event = id)
 
@@ -82,7 +90,27 @@ object Events {
         EventDef("harvest", "Harvest Festival", ms(11, 1), ms(11, 30), "harvest", "harvest", "maple_leaf",
             "Crisp leaves, warm pies, and the whole bakery smells like cinnamon (as usual).", ladder("cinnamon:6")),
         EventDef("frosty", "Frosty Holidays", ms(12, 1), ms(1, 6), "frosty", "frosty", "snowman",
-            "Snow on Maple Lane! Surf wants to build a snowman next to the oven.", ladder("sweets:7")),
+            "Snow on Maple Lane! Grandma June has lent you her cottage on the hill for the holidays.", ladder("sweets:7"),
+            scene = "cottage", place = "Grandma June's Cottage",
+            intro = listOf(
+                Line("june", "Mandy, dear, my old cottage up the hill sits empty every winter. Why don't you and Surf make it cozy for the holidays?"),
+                Line("mandy", "Oh June, really? We'll make it the coziest cottage on the whole hill!"),
+                Line("surf", "*bounds through the snow and immediately gets stuck in a drift*"),
+                Line("mandy", "Every reward milestone you reach this event decorates a little more of the cottage."),
+            ),
+            decor = listOf(
+                "Light the fireplace" to listOf(Line("mandy", "There we go. Crackling fire, warm toes."), Line("surf", "*claims the spot closest to the fire*")),
+                "Hang the stockings" to listOf(Line("lily", "There's one for Surf! Does Santa bring dogs presents?"), Line("mandy", "Only very good boys. So… probably.")),
+                "Bring in a tree" to listOf(Line("farmer", "Freshest tree on the hill, just for you."), Line("mandy", "It smells like pine… and somehow also cinnamon.")),
+                "Decorate the tree" to listOf(Line("ivy", "A little gold star on top, and it's perfect!"), Line("surf", "*very gently sniffs every single ornament*")),
+                "String the lights" to listOf(Line("walt", "Up the ladder I go! June always loved lights along the beams."), Line("june", "Careful, Walter!")),
+                "Hang a wreath" to listOf(Line("bea", "Holly, pine and red berries. Every cozy door needs a wreath.")),
+                "Cocoa and cookies" to listOf(Line("mandy", "Hot cocoa with marshmallows, and cinnamon cookies, of course."), Line("max", "Can I have three? It's the holidays!")),
+                "Presents under the tree" to listOf(Line("mandy", "One for June, one for Walter… and a squeaky toy for someone."), Line("surf", "*has already found it*")),
+                "Build a snowman" to listOf(Line("kai", "Snow surfing is basically the same thing, right? Anyway, I made you a snowman."), Line("mandy", "He's perfect! Look Surf, a new friend.")),
+                "Surf's Santa hat" to listOf(Line("mandy", "One last thing… a Santa hat for the best boy."), Line("surf", "WOOF! (The cottage is complete! Happy holidays!)")),
+            ),
+        ),
         EventDef("sweetheart", "Sweetheart Days", ms(2, 1), ms(2, 15), "sweetheart", "sweetheart", "heart_with_ribbon",
             "Love is in the air, and so is the smell of cinnamon rolls.", ladder("flowers:7")),
         EventDef("spring", "Spring Bloom", ms(3, 20), ms(4, 30), "spring", "spring", "cherry_blossom",

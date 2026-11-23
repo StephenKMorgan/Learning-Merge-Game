@@ -1,0 +1,156 @@
+{
+ "w": 1350,
+ "h": 1175,
+ "layers": [
+  {
+   "id": "base",
+   "file": "kitchen_base.webp",
+   "x": 0,
+   "y": 0,
+   "w": 1350,
+   "h": 1175,
+   "z": 0,
+   "show": "always"
+  },
+  {
+   "id": "herbs",
+   "file": "kitchen_herbs.webp",
+   "x": 533,
+   "y": 106,
+   "w": 321,
+   "h": 331,
+   "z": 8,
+   "show": "done:c3_window"
+  },
+  {
+   "id": "recipe",
+   "file": "kitchen_recipe.webp",
+   "x": 821,
+   "y": 151,
+   "w": 158,
+   "h": 226,
+   "z": 8,
+   "show": "done:c3_recipe"
+  },
+  {
+   "id": "shelves",
+   "file": "kitchen_shelves.webp",
+   "x": 957,
+   "y": 63,
+   "w": 373,
+   "h": 364,
+   "z": 8,
+   "show": "done:c3_shelves"
+  },
+  {
+   "id": "oven",
+   "file": "kitchen_oven.webp",
+   "x": 106,
+   "y": 193,
+   "w": 475,
+   "h": 584,
+   "z": 10,
+   "show": "done:c3_oven"
+  },
+  {
+   "id": "award",
+   "file": "kitchen_award.webp",
+   "x": 0,
+   "y": 63,
+   "w": 1304,
+   "h": 631,
+   "z": 12,
+   "show": "done:c3_award"
+  },
+  {
+   "id": "mixer",
+   "file": "kitchen_mixer.webp",
+   "x": 1027,
+   "y": 382,
+   "w": 189,
+   "h": 240,
+   "z": 14,
+   "show": "done:c3_mixer"
+  },
+  {
+   "id": "mandy_stand",
+   "file": "kitchen_mandy_stand.webp",
+   "x": 658,
+   "y": 612,
+   "w": 235,
+   "h": 376,
+   "z": 20,
+   "show": "undone:c3_table"
+  },
+  {
+   "id": "mandy",
+   "file": "kitchen_mandy.webp",
+   "x": 596,
+   "y": 438,
+   "w": 208,
+   "h": 393,
+   "z": 20,
+   "show": "done:c3_table"
+  },
+  {
+   "id": "table",
+   "file": "kitchen_table.webp",
+   "x": 401,
+   "y": 718,
+   "w": 598,
+   "h": 358,
+   "z": 30,
+   "show": "done:c3_table"
+  },
+  {
+   "id": "rack",
+   "file": "kitchen_rack.webp",
+   "x": 26,
+   "y": 615,
+   "w": 273,
+   "h": 513,
+   "z": 32,
+   "show": "done:c3_rack"
+  },
+  {
+   "id": "mat",
+   "file": "kitchen_mat.webp",
+   "x": 945,
+   "y": 861,
+   "w": 389,
+   "h": 293,
+   "z": 34,
+   "show": "done:c3_surf"
+  },
+  {
+   "id": "surf_sit",
+   "file": "kitchen_surf_sit.webp",
+   "x": 1015,
+   "y": 892,
+   "w": 205,
+   "h": 241,
+   "z": 40,
+   "show": "undone:c3_surf"
+  },
+  {
+   "id": "surf_mat",
+   "file": "kitchen_surf_mat.webp",
+   "x": 1015,
+   "y": 877,
+   "w": 205,
+   "h": 241,
+   "z": 41,
+   "show": "done:c3_surf"
+  },
+  {
+   "id": "junk",
+   "file": "kitchen_junk.webp",
+   "x": 0,
+   "y": 0,
+   "w": 1350,
+   "h": 1175,
+   "z": 60,
+   "show": "undone:c3_clear"
+  }
+ ]
+}

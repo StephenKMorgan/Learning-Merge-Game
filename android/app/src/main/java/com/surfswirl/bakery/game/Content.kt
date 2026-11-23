@@ -134,11 +134,12 @@ object Content {
         Character("rosa", "Rosa from the Office", "woman_office_worker"),
         Character("farmer", "Farmer Gus", "farmer"),
         Character("fire", "Captain Flo", "firefighter"),
+        Character("penny", "Penny Pepper", "woman_in_tuxedo"),
     )
     private val charMap = characters.associateBy { it.id }
     fun character(id: String) = charMap[id] ?: characters[0]
     /** Characters who place orders (not Mandy or Surf). */
-    val customers get() = characters.drop(2)
+    val customers get() = characters.drop(2).filter { it.id != "penny" }
 
     // ---- item helpers ----
 

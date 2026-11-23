@@ -20,6 +20,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -75,11 +81,32 @@ object Scenes {
  * door) fade out, and the next task's spot is marked with a pulsing "?".
  */
 @Composable
-fun SceneView(scene: String, done: Set<String>, nextTask: String?, onSurf: () -> Unit = {}) {
+fun SceneView(scene: String, done: Set<String>, nextTask: String?, onTapLayer: ((SceneLayer) -> Unit)? = null,
+              onExpand: (() -> Unit)? = null, modifier: Modifier = Modifier, rounded: Boolean = true) {
     val ctx = LocalContext.current
     val def = remember(scene) { Scenes.def(ctx, scene) } ?: return
-    BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(def.w / def.h.toFloat()).clip(RoundedCornerShape(18.dp()))) {
+    val doneNow by rememberUpdatedState(done)
+    val onTap by rememberUpdatedState(onTapLayer)
+    BoxWithConstraints(modifier.fillMaxWidth().aspectRatio(def.w / def.h.toFloat())
+        .then(if (rounded) Modifier.clip(RoundedCornerShape(18.dp())) else Modifier)
+        .semantics { contentDescription = "Scene $scene" }) {
         val k = constraints.maxWidth / def.w.toFloat()
+        // Tap a decoration (or Mandy, or Surf) to hear its story: pick the topmost visible pixel under the finger.
+        Box(Modifier.fillMaxSize().pointerInput(def) {
+            detectTapGestures { pos ->
+                val handler = onTap ?: return@detectTapGestures
+                val kk = size.width / def.w.toFloat()
+                val sx = (pos.x / kk).toInt(); val sy = (pos.y / kk).toInt()
+                val hit = def.layers.sortedByDescending { it.z }.firstOrNull { l ->
+                    if (l.id == "base" || !l.visible(doneNow)) return@firstOrNull false
+                    if (sx < l.x || sy < l.y || sx >= l.x + l.w || sy >= l.y + l.h) return@firstOrNull false
+                    val bmp = Scenes.image(ctx, l.file)?.asAndroidBitmap() ?: return@firstOrNull false
+                    val px = bmp.getPixel((sx - l.x).coerceIn(0, bmp.width - 1), (sy - l.y).coerceIn(0, bmp.height - 1))
+                    (px ushr 24) > 60
+                }
+                if (hit != null) handler(hit)
+            }
+        })
         val density = LocalDensity.current
         for (layer in def.layers.sortedBy { it.z }) key(layer.id) {
             val visible = layer.visible(done)
@@ -100,8 +127,7 @@ fun SceneView(scene: String, done: Set<String>, nextTask: String?, onSurf: () ->
                                 if (layer.show.startsWith("done:")) { val s = 0.6f + 0.4f * a; scaleX = s; scaleY = s }
                             }
                             .then(if (character) Modifier.bob(if (isSurf) 1.5f else 2.5f, if (isSurf) 900 else 2200) else Modifier)
-                            .then(if (isSurf) Modifier.semantics { contentDescription = "Surf" }
-                                .clickable(remember { MutableInteractionSource() }, null) { onSurf() } else Modifier))
+                            )
                 }
             }
         }
@@ -119,6 +145,11 @@ fun SceneView(scene: String, done: Set<String>, nextTask: String?, onSurf: () ->
                 }
                 OutlinedText("?", 22, outline = Palette.PinkDark)
             }
+        }
+        if (onExpand != null) {
+            Box(Modifier.align(Alignment.TopEnd).padding(8.dp()).size(40.dp()).clip(androidx.compose.foundation.shape.CircleShape)
+                .background(Color(0xCCFFFFFF)).semantics { contentDescription = "Explore" }.clickable { onExpand() },
+                contentAlignment = Alignment.Center) { OutlinedText("⤢", 20, color = Palette.PinkDark, outline = Color.White) }
         }
     }
 }

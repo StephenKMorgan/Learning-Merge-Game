@@ -11,7 +11,7 @@ from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import W, H, svg, surf_portrait, mandy_portrait
 from render import render
-import inside, patio
+import inside, patio, kitchen, cottage
 
 SCALE = 1.25
 OUT = "android/app/src/main/assets/scenes"
@@ -49,6 +49,8 @@ if __name__ == "__main__":
     prev = sys.argv[1] if len(sys.argv) > 1 else None
     build("inside", inside.layers(), prev)
     build("patio", patio.layers(), prev)
+    build("kitchen", kitchen.layers(), prev)
+    build("cottage", cottage.layers(), prev)
     with tempfile.TemporaryDirectory() as d:
         render([(surf_portrait(), os.path.join(d, "surf.png"), 256, 256), (mandy_portrait(), os.path.join(d, "mandy.png"), 256, 256)])
         for n in ("surf", "mandy"):

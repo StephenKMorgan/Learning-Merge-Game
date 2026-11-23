@@ -487,7 +487,8 @@ object Engine {
         val ev = Events.byId(s.eventId) ?: return Outcome(s)
         val (need, r) = ev.milestones.getOrNull(milestone) ?: return Outcome(s)
         if (s.eventPts < need || milestone in s.eventClaimed) return Outcome(s)
-        return Outcome(grant(s, r).copy(eventClaimed = s.eventClaimed + milestone), listOf(Fx.Granted(r)))
+        val decor = if (ev.scene != null && milestone < ev.decor.size) s.eventDecor + ev.decorId(milestone) else s.eventDecor
+        return Outcome(grant(s, r).copy(eventClaimed = s.eventClaimed + milestone, eventDecor = decor), listOf(Fx.Granted(r)))
     }
 
     // ---------------------------------------------------------------- puzzles

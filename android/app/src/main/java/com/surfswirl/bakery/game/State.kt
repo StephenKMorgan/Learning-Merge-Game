@@ -121,6 +121,8 @@ data class GameState(
     val eventId: String = "",
     val eventPts: Int = 0,
     val eventClaimed: Set<Int> = emptySet(),
+    /** Event-story decorations ever unlocked ("frosty_3"), kept after the event ends so the place can be visited. */
+    val eventDecor: Set<String> = emptySet(),
     /** Puzzle type -> how hard that type is for the player (1.0 = average). Learned over time. */
     val brain: Map<String, Double> = emptyMap(),
     val puzzleLog: List<PuzzleRecord> = emptyList(),

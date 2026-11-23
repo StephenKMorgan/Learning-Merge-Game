@@ -1,0 +1,136 @@
+{
+ "w": 1350,
+ "h": 1175,
+ "layers": [
+  {
+   "id": "base",
+   "file": "cottage_base.webp",
+   "x": 0,
+   "y": 0,
+   "w": 1350,
+   "h": 1172,
+   "z": 0,
+   "show": "always"
+  },
+  {
+   "id": "snowman",
+   "file": "cottage_snowman.webp",
+   "x": 872,
+   "y": 305,
+   "w": 153,
+   "h": 177,
+   "z": 4,
+   "show": "done:frosty_9"
+  },
+  {
+   "id": "fire",
+   "file": "cottage_fire.webp",
+   "x": 173,
+   "y": 473,
+   "w": 379,
+   "h": 379,
+   "z": 6,
+   "show": "done:frosty_1"
+  },
+  {
+   "id": "stockings",
+   "file": "cottage_stockings.webp",
+   "x": 189,
+   "y": 315,
+   "w": 399,
+   "h": 157,
+   "z": 8,
+   "show": "done:frosty_2"
+  },
+  {
+   "id": "garland",
+   "file": "cottage_garland.webp",
+   "x": 0,
+   "y": 41,
+   "w": 1350,
+   "h": 351,
+   "z": 9,
+   "show": "done:frosty_5"
+  },
+  {
+   "id": "wreath",
+   "file": "cottage_wreath.webp",
+   "x": 1217,
+   "y": 343,
+   "w": 133,
+   "h": 162,
+   "z": 9,
+   "show": "done:frosty_6"
+  },
+  {
+   "id": "tree",
+   "file": "cottage_tree.webp",
+   "x": 511,
+   "y": 405,
+   "w": 428,
+   "h": 597,
+   "z": 10,
+   "show": "done:frosty_3"
+  },
+  {
+   "id": "tree_decor",
+   "file": "cottage_tree_decor.webp",
+   "x": 567,
+   "y": 341,
+   "w": 316,
+   "h": 575,
+   "z": 11,
+   "show": "done:frosty_4"
+  },
+  {
+   "id": "presents",
+   "file": "cottage_presents.webp",
+   "x": 531,
+   "y": 850,
+   "w": 401,
+   "h": 164,
+   "z": 12,
+   "show": "done:frosty_8"
+  },
+  {
+   "id": "mandy",
+   "file": "cottage_mandy.webp",
+   "x": 910,
+   "y": 448,
+   "w": 229,
+   "h": 365,
+   "z": 20,
+   "show": "always"
+  },
+  {
+   "id": "cocoa",
+   "file": "cottage_cocoa.webp",
+   "x": 937,
+   "y": 782,
+   "w": 326,
+   "h": 322,
+   "z": 30,
+   "show": "done:frosty_7"
+  },
+  {
+   "id": "surf_rug",
+   "file": "cottage_surf_rug.webp",
+   "x": 295,
+   "y": 903,
+   "w": 339,
+   "h": 158,
+   "z": 40,
+   "show": "always"
+  },
+  {
+   "id": "surf_hat",
+   "file": "cottage_surf_hat.webp",
+   "x": 320,
+   "y": 862,
+   "w": 115,
+   "h": 97,
+   "z": 41,
+   "show": "done:frosty_10"
+  }
+ ]
+}

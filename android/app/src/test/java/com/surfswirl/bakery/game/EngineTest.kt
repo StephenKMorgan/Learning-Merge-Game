@@ -224,4 +224,33 @@ class EngineTest {
         val owned = Engine.ownedChains(s).toSet()
         assertTrue(s.orders.all { o -> o.wants.all { Content.parse(it)!!.first in owned } })
     }
+
+    @Test fun chapterThreeFollowsChapterTwo() {
+        var s = game().copy(coins = 100_000)
+        for (t in Story.chapters[0].tasks + Story.chapters[1].tasks) s = Engine.completeTask(s, t.id).state
+        assertEquals(2, Story.chapterIndex(s.tasksDone))
+        assertEquals("c3_clear", Story.nextTask(s.tasksDone)?.id)
+        for (t in Story.chapters[2].tasks) s = Engine.completeTask(s, t.id).state
+        assertEquals(3, Story.chapterIndex(s.tasksDone))
+        assertTrue("cinnamon:6" in s.pending)
+        assertNull(Story.nextTask(s.tasksDone))
+    }
+
+    @Test fun eventMilestonesDecorateTheCottageAndItStays() {
+        val dec = LocalDate.of(2026, 12, 10)
+        var s = Engine.refresh(game(), t0, dec, Random(1)).state
+        assertEquals("frosty", s.eventId)
+        s = s.copy(eventPts = 100)
+        s = Engine.claimEvent(s, 0).state
+        s = Engine.claimEvent(s, 1).state
+        assertEquals(setOf("frosty_1", "frosty_2"), s.eventDecor)
+        assertTrue(Engine.claimEvent(s, 5).state.eventDecor.size == 2)   // not enough points yet
+        // the event ends, but the cottage keeps its decorations
+        val after = Engine.refresh(s, t0, LocalDate.of(2027, 1, 20), Random(1)).state
+        assertEquals("", after.eventId)
+        assertEquals(setOf("frosty_1", "frosty_2"), after.eventDecor)
+        // every decoration has a layer in the cottage scene
+        val ev = Events.byId("frosty")!!
+        assertEquals(ev.milestones.size, ev.decor.size)
+    }
 }

@@ -111,8 +111,58 @@ object Story {
             Task("c2_party", "Patio party!", "confetti_ball", 800, 0.62f, 0.14f, 0.13f, listOf(
                 Line("kai", "Best patio in town, dude!"),
                 Line("mandy", "And it still smells like cinnamon rolls out here. I don't know how, but it does."),
-                Line("surf", "WOOF! (Chapter 2 complete! More story coming in a future update.)"))),
+                Line("surf", "WOOF! (Chapter 2 complete!)"))),
         ), Reward(rubies = 40, energy = 150, items = listOf("chest:3"))),
+
+        Chapter("ch3", "Cinnamon Famous", "kitchen", listOf(
+            Line("rosa", "Mandy! Big news! Penny Pepper, the famous food critic, is coming to Maple Lane!"),
+            Line("mandy", "THE Penny Pepper? Then we need a real baker's kitchen. The back room is full of old crates…"),
+            Line("surf", "*sniffs the crates suspiciously*"),
+        ), listOf(
+            Task("c3_clear", "Clear out the old kitchen", "package", 900, 0.5f, 0.6f, 0.2f, listOf(
+                Line("hank", "Crates gone! Found a tennis ball, two socks and… is that a cinnamon roll?"),
+                Line("surf", "*looks away very casually*"))),
+            Task("c3_oven", "Fire up a brick oven", "hot_springs", 1000, 0.25f, 0.45f, 0.3f, listOf(
+                Line("chef", "A real brick oven! Now you can bake like the old masters."),
+                Line("mandy", "And the whole street is going to smell like cinnamon. Even more than usual."))),
+            Task("c3_table", "Build a big work table", "fork_and_knife_with_plate", 1050, 0.52f, 0.7f, 0.3f, listOf(
+                Line("mandy", "Plenty of room to roll dough. Surf, flour is not a toy!"),
+                Line("surf", "*sneezes, covered in flour*"))),
+            Task("c3_shelves", "Stock the pantry shelves", "jar", 1100, 0.85f, 0.25f, 0.25f, listOf(
+                Line("bea", "Flour, sugar, oats… and the biggest jar of cinnamon I've ever seen."),
+                Line("mandy", "It's not a bakery without a VERY big jar of cinnamon."))),
+            Task("c3_mixer", "Get a stand mixer", "bowl_with_spoon", 1150, 0.83f, 0.38f, 0.15f, listOf(
+                Line("max", "It's pink! Can I turn it on? *whirrrrr*"),
+                Line("mandy", "Max! The lid! THE LID!"))),
+            Task("c3_rack", "Fill a cooling rack", "iced_roll", 1200, 0.12f, 0.73f, 0.2f, listOf(
+                Line("june", "Rows and rows of rolls, cooling by the window. Just like my mother used to make."),
+                Line("mandy", "Better put a sign on it. Some of us can't resist."))),
+            Task("c3_window", "Plant a herb window box", "herb", 1250, 0.5f, 0.28f, 0.2f, listOf(
+                Line("bea", "Rosemary, thyme and mint, right by the window. Fresh herbs for fresh bread."))),
+            Task("c3_surf", "Surf's taste-tester spot", "bone", 1300, 0.85f, 0.85f, 0.2f, listOf(
+                Line("dot", "I've reviewed the evidence. Surf has been 'taste testing' for months."),
+                Line("mandy", "Fine. He gets an official job. Quality Control."),
+                Line("surf", "WOOF! (He takes his new job very seriously.)"))),
+            Task("c3_recipe", "Hang Grandma's recipe board", "memo", 1400, 0.66f, 0.22f, 0.12f, listOf(
+                Line("june", "My grandmother's secret cinnamon roll recipe. I want you to have it, dear."),
+                Line("mandy", "June… thank you. I'll take good care of it."))),
+            Task("c3_award", "Win the Golden Whisk award", "trophy", 1600, 0.25f, 0.12f, 0.15f, listOf(
+                Line("penny", "I have tasted cinnamon rolls in forty-two countries."),
+                Line("penny", "These are the best. Maple Lane, your bakery wins the Golden Whisk!"),
+                Line("mandy", "We did it, Surf! We're famous!"),
+                Line("surf", "*steals Penny's roll right off her plate*"),
+                Line("penny", "…And the dog has excellent taste. Five stars. (Chapter 3 complete!)"))),
+        ), Reward(rubies = 60, energy = 200, items = listOf("chest:3", "cinnamon:6"))),
+    )
+
+    /** Story places you can visit. Event places appear once that event has been played. */
+    data class Place(val id: String, val name: String, val scene: String, val icon: String, val chapter: Int = -1, val event: String? = null)
+
+    val places = listOf(
+        Place("bakery", "Bakery", "inside", "house", chapter = 0),
+        Place("patio", "Patio", "patio", "umbrella_on_ground", chapter = 1),
+        Place("kitchen", "Kitchen", "kitchen", "iced_roll", chapter = 2),
+        Place("cottage", "Cottage", "cottage", "christmas_tree", event = "frosty"),
     )
 
     fun chapterIndex(done: Set<String>): Int {

@@ -76,6 +76,8 @@ sealed interface Dialog {
     data object Vip : Dialog
     data class Discovery(val item: String) : Dialog
     data object Storage : Dialog
+    /** Full-screen look around a story place: pinch to zoom, tap things to hear their story. */
+    data class Visit(val scene: String) : Dialog
 }
 
 data class Ui(
@@ -195,9 +197,20 @@ class GameViewModel(
     fun toast(text: String) = _ui.update { it.copy(toast = text, toastId = it.toastId + 1) }
 
     fun pushDialog(d: Dialog) = _ui.update { it.copy(dialogs = it.dialogs + d) }
+    /** Shows a dialog on top of the current one (e.g. a story line while exploring a scene). */
+    fun pushDialogFront(d: Dialog) = _ui.update { it.copy(dialogs = listOf(d) + it.dialogs) }
     fun closeDialog() = _ui.update { it.copy(dialogs = it.dialogs.drop(1)) }
 
-    fun refresh() = apply(Engine.refresh(_state.value, now(), today(), rnd))
+    fun refresh() {
+        val before = _state.value.eventId
+        apply(Engine.refresh(_state.value, now(), today(), rnd))
+        val ev = Events.byId(_state.value.eventId)
+        val key = "event_intro_${_state.value.eventId}_${today().year}"
+        if (ev != null && ev.intro.isNotEmpty() && key !in _state.value.seenStory && "intro" in _state.value.seenStory) {
+            _state.update { it.copy(seenStory = it.seenStory + key) }
+            pushDialog(Dialog.Talk(ev.intro, ev.place))
+        }
+    }
 
     /**
      * Picks the music for what's happening: the puzzle style during puzzles, night music in the
@@ -370,7 +383,38 @@ class GameViewModel(
 
     fun claimFreeTreat() = apply(Engine.claimFreeTreat(_state.value, today()))
     fun claimPass(tier: Int, vip: Boolean) = apply(Engine.claimPass(_state.value, tier, vip, today()))
-    fun claimEvent(m: Int) = apply(Engine.claimEvent(_state.value, m))
+    fun claimEvent(m: Int) {
+        val before = _state.value
+        apply(Engine.claimEvent(before, m))
+        val ev = Events.byId(before.eventId) ?: return
+        val id = ev.decorId(m)
+        if (id in _state.value.eventDecor && id !in before.eventDecor) {
+            ev.decor.getOrNull(m)?.let { (title, lines) -> pushDialog(Dialog.Talk(lines, title)) }
+        }
+    }
+
+    private val mandyLines = listOf(
+        "Does it smell like cinnamon rolls in here, or is it just me?", "Every corner of this place has a story now.",
+        "Surf, that is NOT your roll.", "I could stand here all day. Well, until the oven timer goes off.",
+    )
+    private val surfLines = listOf("Woof!", "*tail wagging intensifies*", "*rolls over for belly rubs*", "*sniffs your hand for crumbs*")
+
+    /** Tapped something in a scene: replay that decoration's story moment. */
+    fun sceneTap(layer: com.surfswirl.bakery.ui.screens.SceneLayer) {
+        sfx?.play(Sound.TAP)
+        when {
+            layer.id.startsWith("surf") -> { woof(); pushDialogFront(Dialog.Talk(listOf(com.surfswirl.bakery.game.Line("surf", surfLines.random(rnd))))) }
+            layer.id.startsWith("mandy") -> pushDialogFront(Dialog.Talk(listOf(com.surfswirl.bakery.game.Line("mandy", mandyLines.random(rnd)))))
+            layer.show.startsWith("done:") -> {
+                val id = layer.show.removePrefix("done:")
+                Story.task(id)?.let { pushDialogFront(Dialog.Talk(it.after, it.title)); return }
+                for (ev in Events.events) ev.decor.forEachIndexed { i, (title, lines) ->
+                    if (ev.decorId(i) == id) { pushDialogFront(Dialog.Talk(lines, title)); return }
+                }
+            }
+            layer.show.startsWith("undone:") -> toast("Fix this up with a renovation task!")
+        }
+    }
 
     fun updateSettings(f: (com.surfswirl.bakery.game.Settings) -> com.surfswirl.bakery.game.Settings) {
         _state.update { it.copy(settings = f(it.settings)) }

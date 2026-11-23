@@ -13,7 +13,7 @@ fully offline. In-game "purchases" are paid with brain puzzles instead of money.
   - `puzzles/` — `Brain.kt` (adaptive difficulty), `Generators.kt` (all 6 puzzle generators), `WordBank.kt`.
   - `data/SaveStore.kt` — JSON save, atomic writes, `save.prev.json` fallback, `Migrations`.
   - `ui/` — `GameViewModel.kt` (state, dialogs, puzzle sessions), `App.kt` (root, particles, toasts),
-    `screens/` (board, bakery, shop, pass, event, settings, stats, dialogs), `puzzles/PuzzleScreen.kt`,
+    `screens/` (board, places/story, shop, pass, event, settings, stats, dialogs), `puzzles/PuzzleScreen.kt`,
     `components/` (candy buttons, art loader, particles, floating background), `theme/`.
   - `fx/` — sound effects (SoundPool) and haptics. `notify/` — the "energy full" notification.
 - `android/app/src/main/assets/items/*.webp` — all item art (Fluent Emoji 3D, MIT, plus our cinnamon rolls).
@@ -24,7 +24,7 @@ fully offline. In-game "purchases" are paid with brain puzzles instead of money.
   intensity (orders ready + board fullness).
 - `android/app/src/main/assets/scenes/` — the hand-drawn renovation scenes: `<scene>.json` lists each layer
   (position, z order, and when it shows: `always`, `done:<task>`, `undone:<task>`) plus the layer images.
-  Rendered by `ui/screens/SceneView.kt`. Also `assets/items/surf_face.webp` and `mandy_face.webp` (portraits).
+  Rendered by `ui/screens/SceneView.kt` (tap a layer to replay its story; the explore view zooms). Also `assets/items/surf_face.webp` and `mandy_face.webp` (portraits).
 - `tools/` — `prepare_art.py` (downloads Fluent emoji + converts to WebP), `make_cinnamon_art.py`,
   `make_sfx.py`, `make_icon.py`,
   `scenes/` (`make_scenes.py` renders the scene SVGs in `inside.py` / `patio.py` / `common.py` with Chromium).
@@ -46,7 +46,11 @@ Updates must NEVER lose Mandy's progress.
 
 - **Seasonal event**: add a chain in `Content.chains` with `event = "<id>"`, a `Theme` and an `EventDef` (dates,
   milestones) in `Events.kt`. Events switch automatically by date; leftover event items become coins.
-- **Story chapter**: append a `Chapter` to `Story.chapters` (new task ids) and draw its scene in
+- **Event story** (like Frosty Holidays' cottage): give the `EventDef` a `scene`, `place` name, `intro` lines and one
+  `decor` entry (title + lines) per milestone. Claiming milestone n unlocks decoration `<event>_<n+1>` (kept forever in
+  `GameState.eventDecor`); draw the scene with layers shown on `done:<event>_<n>`. Add a `Story.Place` with `event = id`
+  so it appears in the places row while the event runs and afterwards.
+- **Story chapter**: append a `Chapter` to `Story.chapters` (new task ids), add its `Story.Place`, and draw its scene in
   `tools/scenes/<scene>.py`: one layer per task with `show="done:<task id>"` (and optional `undone:` "before"
   layers), placed where the thing really belongs. Run `python3 tools/scenes/make_scenes.py <preview_dir>` and
   check the before/after previews. The "?" marker uses the centre of the task's done-layer automatically.
@@ -87,7 +91,7 @@ Everyday CI builds are version "dev" (versionCode 1) and are only for testing.
 
 - More music styles and instruments (each event already has its own style).
 - Optional: hand-drawn board items to match the scenes (the Fluent 3D emoji currently look richer on small tiles).
-- Chapter 3 "Cinnamon Famous" and more story; more renovation scenes.
+- Chapter 4 and more story; event stories for the other seasonal events (Harvest, Sweetheart, Spring, Summer, Spooky).
 - More puzzle types (logic grid riddles, truth-tellers from the Therefore app, crosswords, spelling bee).
 - Generator upgrades, a collection book with rewards, achievements.
 - Weekly mini-events between the big seasonal ones.

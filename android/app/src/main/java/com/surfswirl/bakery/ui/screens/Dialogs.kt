@@ -10,6 +10,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,7 +72,10 @@ import com.surfswirl.bakery.ui.theme.Palette
 
 @Composable
 fun DialogHost(vm: GameViewModel, state: GameState, ui: Ui, particles: Particles) {
+    // An open explore view stays underneath, so its zoom survives a story line popping up on top.
+    ui.dialogs.filterIsInstance<Dialog.Visit>().firstOrNull()?.let { VisitDialog(vm, state, it.scene) }
     val d = ui.dialogs.firstOrNull() ?: return
+    if (d is Dialog.Visit) return
     // Scrim
     Box(Modifier.fillMaxSize().background(Color(0x99301A10))
         .clickable(remember { MutableInteractionSource() }, null) { if (d is Dialog.Talk) {} else if (dismissable(d)) vm.closeDialog() })
@@ -111,12 +115,37 @@ fun DialogHost(vm: GameViewModel, state: GameState, ui: Ui, particles: Particles
                     }
                 }) { vm.closeDialog() }
                 Dialog.Storage -> StorageDialog(vm, state)
+                is Dialog.Visit -> {}
             }
         }
     }
 }
 
-private fun dismissable(d: Dialog) = d !is Dialog.PickPuzzle && d !is Dialog.PuzzleFailed && d !is Dialog.Rewarded && d !is Dialog.LevelUp
+@Composable
+private fun VisitDialog(vm: GameViewModel, state: GameState, scene: String) {
+    var scale by remember { androidx.compose.runtime.mutableFloatStateOf(1f) }
+    var offset by remember { androidx.compose.runtime.mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    val transform = androidx.compose.foundation.gestures.rememberTransformableState { zoom, pan, _ ->
+        scale = (scale * zoom).coerceIn(1f, 3.5f)
+        val limit = 600f * (scale - 1f)
+        offset = androidx.compose.ui.geometry.Offset((offset.x + pan.x).coerceIn(-limit, limit), (offset.y + pan.y).coerceIn(-limit, limit))
+    }
+    Box(Modifier.fillMaxSize().background(Color(0xF02B1A12)).padding(top = 40.dp)) {
+        Box(Modifier.fillMaxSize().transformable(transform), contentAlignment = Alignment.Center) {
+            Box(Modifier.graphicsLayer { scaleX = scale; scaleY = scale; translationX = offset.x; translationY = offset.y }) {
+                SceneView(scene, state.tasksDone + state.eventDecor, null, onTapLayer = { vm.sceneTap(it) }, rounded = false)
+            }
+        }
+        Column(Modifier.align(Alignment.TopCenter).padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            OutlinedText("Pinch to zoom · tap things to hear their story", 14, outline = Color(0xFF3A1E12))
+        }
+        Box(Modifier.align(Alignment.BottomCenter).padding(24.dp)) {
+            CandyButton("Done", Modifier.width(160.dp), color = Palette.Pink, dark = Palette.PinkDark) { vm.closeDialog() }
+        }
+    }
+}
+
+private fun dismissable(d: Dialog) = d !is Dialog.Visit && d !is Dialog.PickPuzzle && d !is Dialog.PuzzleFailed && d !is Dialog.Rewarded && d !is Dialog.LevelUp
 
 @Composable
 fun Card(vm: GameViewModel, title: String, closable: Boolean = true, content: @Composable () -> Unit) {
