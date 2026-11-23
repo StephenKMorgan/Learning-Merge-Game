@@ -116,10 +116,10 @@ class GameViewModel(
     init {
         applySettings()
         viewModelScope.launch {
-            _ui.collect { u -> music?.setDucked(u.screen == Screen.PUZZLE) }
+            _ui.collect { u -> music?.setDucked(u.screen == Screen.PUZZLE); updateMusic() }
         }
         viewModelScope.launch {
-            _state.collect { s -> music?.setTheme(Events.themeFor(s.settings, today()).id) }
+            _state.collect { updateMusic() }
         }
         refresh()
         if ("intro" !in _state.value.seenStory) {
@@ -132,7 +132,7 @@ class GameViewModel(
             while (isActive) {
                 delay(1000)
                 _clock.value = now()
-                if (_clock.value / 1000 % 15 == 0L) refresh()
+                if (_clock.value / 1000 % 15 == 0L) { refresh(); updateMusic() }
             }
         }
         @OptIn(FlowPreview::class)
@@ -198,6 +198,28 @@ class GameViewModel(
     fun closeDialog() = _ui.update { it.copy(dialogs = it.dialogs.drop(1)) }
 
     fun refresh() = apply(Engine.refresh(_state.value, now(), today(), rnd))
+
+    /**
+     * Picks the music for what's happening: the puzzle style during puzzles, night music in the
+     * evening, the event's style during an event, otherwise café and patio taking turns. The busier
+     * the board (orders ready to serve, items on the board), the more instruments join in.
+     */
+    private fun updateMusic() {
+        val m = music ?: return
+        val s = _state.value
+        val hour = java.time.Instant.ofEpochMilli(now()).atZone(java.time.ZoneId.systemDefault()).hour
+        val theme = Events.themeFor(s.settings, today()).id
+        val styles = when {
+            _ui.value.screen == Screen.PUZZLE -> listOf(com.surfswirl.bakery.music.Styles.puzzle)
+            hour >= 20 || hour < 6 -> listOf(com.surfswirl.bakery.music.Styles.night)
+            else -> com.surfswirl.bakery.music.Styles.forEvent(theme)?.let { listOf(it, com.surfswirl.bakery.music.Styles.cafe) }
+                ?: listOf(com.surfswirl.bakery.music.Styles.cafe, com.surfswirl.bakery.music.Styles.patio)
+        }
+        m.setStyles(styles)
+        val ready = s.orders.count { Engine.orderCells(s, it) != null }
+        val filled = s.board.count { it.item != null && !it.boxed }.toFloat() / s.board.size
+        m.setIntensity(0.3f + 0.15f * ready + 0.45f * filled)
+    }
 
     fun onForeground() {
         refresh()

@@ -17,12 +17,16 @@ fully offline. In-game "purchases" are paid with brain puzzles instead of money.
     `components/` (candy buttons, art loader, particles, floating background), `theme/`.
   - `fx/` — sound effects (SoundPool) and haptics. `notify/` — the "energy full" notification.
 - `android/app/src/main/assets/items/*.webp` — all item art (Fluent Emoji 3D, MIT, plus our cinnamon rolls).
-- `android/app/src/main/res/raw/sfx_*.wav` — synthesized sound effects; `music_*.ogg` — composed music loops.
+- `android/app/src/main/res/raw/sfx_*.wav` — synthesized sound effects.
+- `music/` — the live music engine (pure Kotlin, no Android): `Instruments.kt` (synth voices), `Styles.kt` (one style
+  per mood/event: chords, instruments, when each part joins), `Engine.kt` (composer + mixer), played by `fx/Music.kt`
+  on an AudioTrack thread. `GameViewModel.updateMusic()` picks styles (puzzle / night after 8pm / event / day) and
+  intensity (orders ready + board fullness).
 - `android/app/src/main/assets/scenes/` — the hand-drawn renovation scenes: `<scene>.json` lists each layer
   (position, z order, and when it shows: `always`, `done:<task>`, `undone:<task>`) plus the layer images.
   Rendered by `ui/screens/SceneView.kt`. Also `assets/items/surf_face.webp` and `mandy_face.webp` (portraits).
 - `tools/` — `prepare_art.py` (downloads Fluent emoji + converts to WebP), `make_cinnamon_art.py`,
-  `make_sfx.py`, `make_music.py` (composes and renders the music), `make_icon.py`,
+  `make_sfx.py`, `make_icon.py`,
   `scenes/` (`make_scenes.py` renders the scene SVGs in `inside.py` / `patio.py` / `common.py` with Chromium).
 
 ## Save compatibility (most important rule)
@@ -46,8 +50,9 @@ Updates must NEVER lose Mandy's progress.
   `tools/scenes/<scene>.py`: one layer per task with `show="done:<task id>"` (and optional `undone:` "before"
   layers), placed where the thing really belongs. Run `python3 tools/scenes/make_scenes.py <preview_dir>` and
   check the before/after previews. The "?" marker uses the centre of the task's done-layer automatically.
-- **Music**: edit/add a track in `tools/make_music.py` (needs numpy + ffmpeg), run it, and list the track in
-  `fx/Music.kt` playlists.
+- **Music**: add a `Style` in `music/Styles.kt` (chords per section, parts with instrument, pattern and the
+  intensity they join at) and map it in `Styles.forEvent` / `level`. New instruments go in `music/Instruments.kt`.
+  `MusicEngineTest` renders listening samples to `android/app/build/music-samples/` (convert with ffmpeg to share).
 - **Item chain / generator**: append to `Content.chains` / `Content.generators` (with `unlockLevel`). Players who
   reach the level get the generator in their gift bubble automatically (`Engine.giveMissingGenerators`).
 - **Puzzle type**: add to `PuzzleType` (with a `prior` difficulty), a generator in `Generators.kt`, a
@@ -80,7 +85,7 @@ Everyday CI builds are version "dev" (versionCode 1) and are only for testing.
 
 ## Roadmap / future updates
 
-- More music: a puzzle-focus track, Halloween / Valentine variants.
+- More music styles and instruments (each event already has its own style).
 - Optional: hand-drawn board items to match the scenes (the Fluent 3D emoji currently look richer on small tiles).
 - Chapter 3 "Cinnamon Famous" and more story; more renovation scenes.
 - More puzzle types (logic grid riddles, truth-tellers from the Therefore app, crosswords, spelling bee).
