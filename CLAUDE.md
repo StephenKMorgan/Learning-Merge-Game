@@ -42,7 +42,12 @@ fully offline. In-game "purchases" are paid with brain puzzles instead of money.
   turns `item(id, prop, anchor, task=…)` lists into layers, so things always sit where they belong. Browse the
   props in `docs/kit-catalog.png` (regenerate with `python3 tools/scenes/kit.py docs`). Add new props to `PROPS`.
 - **Map & places**: `Story.locations` (map pins; ids match `map.py` spots) each hold `Story.places` (a chapter's or
-  event's scene). Locations with nothing open sit under clouds with their `teaser`. `ui/screens/PlacesScreen.kt`
+  event's scene). Locations with nothing open stay under the fog (`fog.webp`, clearings cut per `map.json` `reveal`)
+  with their `teaser`. In `map.py` place everything through the `Layout` checker (`put_house`, `L.solid(...)`,
+  `forest()`/`put_tree` only use free ground): the build fails on overlaps, buildings in water or on roads.
+  Moving things (smoke, water sparkles, Ferris wheel, windmill, boats, lighthouse, fountain, birds) are positions in
+  `map.json` `anims`, drawn by `ui/screens/MapLife.kt`. `MapPreviewTest` renders the whole map with no fog to
+  `build/screenshots/map-life.png`. `ui/screens/PlacesScreen.kt`
   has the map (`BakeryScreen`), the location card and `PlaceScreen`.
 - **Board obstacles** (`game/Obstacles.kt`): each new chapter lays ~8 obstacles on empty squares (never over items),
   themed per chapter (cobwebs, leaves, flour sacks, snow drifts in Frosty), plus 2 delivery crates; each hides a

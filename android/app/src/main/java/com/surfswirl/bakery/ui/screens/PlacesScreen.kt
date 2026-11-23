@@ -86,7 +86,7 @@ fun placeHasNews(p: Story.Place, state: GameState, today: java.time.LocalDate): 
 object MapData {
     @kotlinx.serialization.Serializable
     data class Map(val w: Int, val h: Int, val spots: kotlin.collections.Map<String, List<Int>>,
-                   val reveal: kotlin.collections.Map<String, Int> = emptyMap())
+                   val reveal: kotlin.collections.Map<String, Int> = emptyMap(), val anims: MapAnims = MapAnims())
     private var map: Map? = null
     fun get(ctx: android.content.Context): Map? = map ?: runCatching {
         kotlinx.serialization.json.Json { ignoreUnknownKeys = true }.decodeFromString(Map.serializer(),
@@ -123,6 +123,7 @@ fun BakeryScreen(vm: GameViewModel, state: GameState) {
               Box(Modifier.fillMaxWidth().aspectRatio(map.w / map.h.toFloat()).clipToBounds()) {
                 androidx.compose.foundation.Image(img, contentDescription = "Map of Maple Lane",
                     modifier = Modifier.fillMaxWidth().aspectRatio(map.w / map.h.toFloat()))
+                MapLife(map.anims, k, Modifier.matchParentSize())
                 // Fog of war: one cloud layer over the whole town, with soft clearings cut around open places.
                 val openIds = Story.locations.filter { openPlaces(it, state, today).isNotEmpty() }.map { it.id }
                 val fog = androidx.compose.runtime.remember(openIds) { fogWithClearings(ctx, map, openIds) }
@@ -132,6 +133,7 @@ fun BakeryScreen(vm: GameViewModel, state: GameState) {
                 if (fog != null) androidx.compose.foundation.Image(fog, contentDescription = null,
                     contentScale = androidx.compose.ui.layout.ContentScale.FillBounds, alpha = 0.9f,
                     modifier = Modifier.matchParentSize().graphicsLayer { scaleX = 1.05f; scaleY = 1.02f; translationX = dx * k })
+                MapBirds(map.w * k, map.h * k, k * 1.25f, Modifier.matchParentSize())
                 for (loc in Story.locations) {
                     val spot = map.spots[loc.id] ?: continue
                     val open = openPlaces(loc, state, today)
