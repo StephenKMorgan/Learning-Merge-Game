@@ -19,10 +19,31 @@ SCALE = 1.25
 OUT = "android/app/src/main/assets/scenes"
 R = random.Random(7)
 
+# One map per season: same town, same layout, different colours (snow, blossom, autumn leaves).
+SEASONS = {
+    "summer": dict(grass="#93bf6e", hills=("#7faa5c", "#88b363", "#7aa758"), patches=("#8bb766", "#9bc677", "#89b464", "#9fc87a", "#97c272"),
+                   round=("#5b9a4a", "#4f8c43", "#67a552", "#4a843f"), maple=("#6aa84f", "#5b9a4a", "#7bb35a", "#4f8c43"),
+                   fields=("#d9b85c", "#9cbf5a"), fair="#a8cf86", great="#4f8c43", apples=True, snow=False,
+                   flowers=("#ffffff", "#ffd34d", "#ff8fb5", "#c9a2ff"), water="#5fb3d6", sand=("#e8d29b", "#f1dfae"), dune="#8fa85a"),
+    "autumn": dict(grass="#a3b86a", hills=("#93a85a", "#9cb064", "#8fa456"), patches=("#a7b86c", "#b3bf72", "#9fb262", "#b7c07a", "#adbb70"),
+                   round=("#c9a23f", "#6b9a4a", "#d9822f", "#a8a845"), maple=("#e0782f", "#d9572b", "#e89a33", "#c94a2c"),
+                   fields=("#e3b85a", "#b98a5b"), fair="#b9c47e", great="#d9572b", apples=True, snow=False,
+                   flowers=("#e89a33", "#d9572b", "#ffd34d", "#ffffff"), water="#5fb3d6", sand=("#e8d29b", "#f1dfae"), dune="#a89a5a"),
+    "spring": dict(grass="#9fd178", hills=("#8cc164", "#95c96d", "#86bb60"), patches=("#a3d27c", "#afd986", "#99cb74", "#b1da8a", "#a7d481"),
+                   round=("#6fb257", "#5ea64c", "#f2b8cc", "#7cbc5e"), maple=("#f4b6c8", "#f7c9d6", "#e89ab3", "#f2a7bf"),
+                   fields=("#b5d27a", "#8fbf5a"), fair="#b4dc92", great="#f2a7bf", apples=False, snow=False,
+                   flowers=("#ffffff", "#ffd34d", "#ff8fb5", "#ff8fb5"), water="#5fb3d6", sand=("#e8d29b", "#f1dfae"), dune="#8fb85a"),
+    "winter": dict(grass="#e9eff4", hills=("#dce5ec", "#e3eaf0", "#d5dfe8"), patches=("#f1f5f8", "#e2e9ef", "#eef3f7", "#e6edf2", "#f3f6f9"),
+                   round=("#e3eaf0", "#d9e2ea", "#eef2f6", "#d2dce6"), maple=("#e3eaf0", "#d9e2ea", "#eef2f6", "#d2dce6"),
+                   fields=("#f3f6f9", "#eef3f6"), fair="#f3f6f9", great="#e3eaf0", apples=False, snow=True,
+                   flowers=(), water="#7cc0dc", sand=("#e6e0cf", "#efebdf"), dune="#a6ab95"),
+}
+S = SEASONS["summer"]
+
 SPOTS = {
     "orchard": (300, 420), "hill": (830, 350),
     "market": (230, 860), "bakery": (545, 800), "tearoom": (880, 815),
-    "fair": (250, 1260), "greenhouse": (745, 1290), "beach": (520, 1650),
+    "fair": (250, 1260), "greenhouse": (745, 1290), "beach": (500, 1640), "harbor": (840, 1770),
 }
 # How far around an open location the fog clears (map units). Exported for the app.
 REVEAL = {"bakery": 420, "hill": 280}
@@ -74,15 +95,17 @@ def shade(c, f):
 def tree(x, y, s=1.0, kind="round", c=None):
     if kind == "pine":
         c = c or R.choice(["#2f6b45", "#356f4a", "#2b5f40"])
+        snow = (f'<path d="M{x},{y - 58 * s} L{x + 9 * s},{y - 30 * s} L{x + 3 * s},{y - 34 * s} L{x - 2 * s},{y - 28 * s} L{x - 9 * s},{y - 32 * s} Z" fill="#f4f8fb"/>'
+                if S["snow"] else "")
         return (f'<ellipse cx="{x + 4 * s}" cy="{y + 3 * s}" rx="{16 * s}" ry="{5 * s}" fill="#1e3b25" opacity="0.3"/>'
                 f'<rect x="{x - 3 * s}" y="{y - 8 * s}" width="{6 * s}" height="{10 * s}" fill="#5b3a26"/>'
                 f'<path d="M{x},{y - 58 * s} L{x + 17 * s},{y - 4 * s} L{x - 17 * s},{y - 4 * s} Z" fill="{c}"/>'
                 f'<path d="M{x},{y - 58 * s} L{x + 17 * s},{y - 4 * s} L{x},{y - 4 * s} Z" fill="{shade(c, -0.25)}"/>'
-                f'<path d="M{x},{y - 58 * s} L{x - 6 * s},{y - 36 * s} L{x + 2 * s},{y - 40 * s} Z" fill="{shade(c, 0.25)}"/>')
+                f'<path d="M{x},{y - 58 * s} L{x - 6 * s},{y - 36 * s} L{x + 2 * s},{y - 40 * s} Z" fill="{shade(c, 0.25)}"/>' + snow)
     if kind == "maple":
-        c = c or R.choice(["#e0782f", "#d9572b", "#e89a33", "#c94a2c"])
+        c = c or R.choice(S["maple"])
     else:
-        c = c or R.choice(["#5b9a4a", "#4f8c43", "#67a552", "#4a843f"])
+        c = c or R.choice(S["round"])
     return (f'<ellipse cx="{x + 5 * s}" cy="{y + 3 * s}" rx="{22 * s}" ry="{7 * s}" fill="#1e3b25" opacity="0.3"/>'
             f'<rect x="{x - 3.5 * s}" y="{y - 16 * s}" width="{7 * s}" height="{18 * s}" fill="#6b4630"/>'
             f'<circle cx="{x}" cy="{y - 30 * s}" r="{21 * s}" fill="{c}"/>'
@@ -97,9 +120,11 @@ def house(x, y, w=64, h=46, wall="#f1e3cc", roof="#b5553c", depth=18, chimney=Tr
     out += f'<path d="M{l + w},{y} L{l + w + depth},{y - depth * 0.6} L{l + w + depth},{y - h - depth * 0.6} L{l + w},{y - h} Z" fill="{side}"/>'
     out += f'<rect x="{l}" y="{y - h}" width="{w}" height="{h}" fill="{wall}"/>'
     peak = y - h - h * 0.75
+    eave = roof
+    if S["snow"]: roof = "#f2f6f9"
     out += f'<path d="M{l - 5},{y - h + 2} L{x},{peak} L{l + w + 5},{y - h + 2} Z" fill="{roof}"/>'
     out += f'<path d="M{x},{peak} L{l + w + depth + 4},{peak - depth * 0.6 + 4} L{l + w + depth + 4},{y - h - depth * 0.6 + 2} L{l + w + 5},{y - h + 2} Z" fill="{shade(roof, -0.22)}"/>'
-    out += f'<path d="M{l - 5},{y - h + 2} L{l + w + 5},{y - h + 2}" stroke="{shade(roof, -0.35)}" stroke-width="2.5"/>'
+    out += f'<path d="M{l - 5},{y - h + 2} L{l + w + 5},{y - h + 2}" stroke="{shade(eave, -0.35) if not S["snow"] else eave}" stroke-width="{2.5 if not S["snow"] else 4}"/>'
     if chimney:
         out += f'<rect x="{x + w * 0.18}" y="{peak + 2}" width="8" height="{h * 0.45}" fill="#8a5a44"/>'
     for i in range(windows):
@@ -114,7 +139,7 @@ def lamp(x, y):
             f'<circle cx="{x}" cy="{y - 32}" r="5" fill="#ffe7a3"/><circle cx="{x}" cy="{y - 32}" r="12" fill="#fff1c2" opacity="0.35"/>')
 
 def field(x, y, w, h, color, rows, angle=0):
-    lines = "".join(f'<line x1="{x + 6}" y1="{y + 6 + i * (h - 12) / max(1, rows - 1):.1f}" x2="{x + w - 6}" y2="{y + 6 + i * (h - 12) / max(1, rows - 1):.1f}" stroke="{shade(color, -0.2)}" stroke-width="3" stroke-linecap="round"/>' for i in range(rows))
+    lines = "".join(f'<line x1="{x + 6}" y1="{y + 6 + i * (h - 12) / max(1, rows - 1):.1f}" x2="{x + w - 6}" y2="{y + 6 + i * (h - 12) / max(1, rows - 1):.1f}" stroke="{shade(color, -0.2 if not S["snow"] else -0.06)}" stroke-width="3" stroke-linecap="round"/>' for i in range(rows))
     return (f'<g transform="rotate({angle} {x + w / 2} {y + h / 2})"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="6" fill="{color}"/>'
             f'{lines}<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="6" fill="none" stroke="#7a8f4a" stroke-width="3" opacity="0.6"/></g>')
 
@@ -183,12 +208,16 @@ class Layout:
             raise SystemExit("Map layout problems:\n  " + "\n  ".join(self.problems))
 
 L = Layout()
-ANIM = {"smoke": [], "glints": [], "boats": [], "wheel": None, "beam": None, "fountain": None}
+ANIM = {}
 
 def put_house(name, x, y, w=64, h=46, depth=18, chimney=True, **kw):
     peak = y - h - h * 0.75
     L.solid(name, (x - w / 2 - 5, peak - depth * 0.6, x + w / 2 + depth + 4, y + 4), (x - w / 2, y - depth * 0.6, x + w / 2 + depth, y))
     if chimney: ANIM["smoke"].append((x + w * 0.18 + 4, peak + 2))
+    n = kw.get("windows", 2); l = x - w / 2
+    for i in range(n):
+        wx = l + 8 + i * (w - 26) / max(1, n - 1) if n > 1 else x - 6
+        ANIM["lights"].append((wx + 5.5, y - h + 15))
     return house(x, y, w, h, depth=depth, chimney=chimney, **kw)
 
 def put_tree(x, y, s=1.0, kind="round", c=None, check=True):
@@ -209,18 +238,21 @@ def forest(cx, cy, rx, ry, n, kinds=("round",), s=(0.7, 1.05)):
 
 # ------------------------------------------------------------------ the map
 
-RIVER = "M70,300 Q118,430 86,560 Q52,700 92,830 Q110,1035 300,1032 Q430,1035 480,1075 Q540,1100 640,1085 Q820,1080 905,1220 Q965,1380 1005,1600 Q1025,1690 1060,1760"
+RIVER = "M48,312 Q118,430 86,560 Q52,700 92,830 Q110,1035 300,1032 Q430,1035 480,1075 Q540,1100 640,1085 Q820,1080 905,1220 Q965,1380 1005,1600 Q1020,1660 1040,1700"
 LANE_Y = 872
 ROADS = {
-    "bridge road": ("M545,904 L545,1060", 18),
-    "fair road": ("M545,1115 Q535,1190 470,1225 Q440,1240 415,1250", 18),
-    "greenhouse road": ("M548,1115 Q585,1235 640,1292", 18),
-    "beach road": ("M545,1170 Q505,1360 515,1590", 18),
+    "bridge road": ("M545,904 L545,1160", 18),
+    "fair road": ("M545,1160 Q530,1210 470,1232 Q440,1244 415,1252", 18),
+    "greenhouse road": ("M545,1160 Q590,1245 640,1292", 18),
+    "beach road": ("M545,1160 Q510,1360 515,1590", 18),
     "hill road": ("M720,845 Q760,640 818,470 Q836,430 832,412", 18),
     "farm road": ("M318,845 Q312,700 302,600 Q294,520 330,472", 18),
 }
 
-def build():
+def build(season="summer"):
+    global S, L, ANIM
+    S = SEASONS[season]; R.seed(7); L = Layout()
+    ANIM = {"smoke": [], "glints": [], "boats": [], "lights": [], "lamps": [], "wheel": None, "beam": None, "fountain": None}
     b = []
     add = b.append
     # sky, then the land
@@ -229,7 +261,7 @@ def build():
     for (cx, cy, s) in [(160, 70, 1.0), (520, 40, 0.8), (880, 90, 1.1)]:
         add("".join(f'<ellipse cx="{cx + dx * s}" cy="{cy + dy * s}" rx="{rx * s}" ry="{ry * s}" fill="#ffffff" opacity="0.9"/>'
                     for (dx, dy, rx, ry) in [(-40, 6, 40, 18), (0, -4, 46, 26), (44, 6, 38, 18)]))
-    add(f'<path d="M-20,250 L1100,250 L1100,{MH} L-20,{MH} Z" fill="#93bf6e"/>')
+    add(f'<path d="M-20,250 L1100,250 L1100,{MH} L-20,{MH} Z" fill="{S["grass"]}"/>')
     # one mountain range: every peak rises out of the same rock, and the foothills cover the base
     peaks = [(-30, 120), (110, 70), (260, 130), (420, 60), (590, 125), (760, 50), (930, 110), (1090, 80)]
     ridge = "M-40,380 " + " ".join(f"L{x - 75},{top + 120} L{x},{top}" for (x, top) in peaks) + " L1120,200 L1120,380 Z"
@@ -237,15 +269,34 @@ def build():
     for (x, top) in peaks:
         add(f'<path d="M{x},{top} L{x + 120},{top + 200} L{x + 40},{top + 260} L{x + 6},{top + 260} Z" fill="#717c8c"/>')
         add(f'<path d="M{x},{top} L{x + 30},{top + 46} L{x + 12},{top + 40} L{x - 4},{top + 56} L{x - 24},{top + 42} Z" fill="#f4f7fb"/>')
-    add('<path d="M-20,300 Q140,215 300,270 Q460,205 640,262 Q800,200 1100,255 V470 H-20 Z" fill="#7faa5c"/>')
-    add('<path d="M-20,345 Q200,275 380,335 Q560,285 760,345 Q920,300 1100,335 V480 H-20 Z" fill="#88b363"/>')
-    add('<path d="M640,480 Q700,260 860,235 Q1020,230 1100,320 V540 Z" fill="#7aa758"/>')        # June's hill
-    for (cx, cy, rx, ry, c) in [(300, 640, 380, 220, "#8bb766"), (800, 1000, 360, 240, "#9bc677"), (200, 1150, 260, 200, "#89b464"),
-                                (700, 600, 300, 160, "#9fc87a"), (500, 1350, 400, 140, "#97c272")]:
+    hl = S["hills"]
+    # waterfall: the river spills out of a cleft in the mountains before the foothills begin
+    add('<path d="M18,330 L30,196 L46,176 L64,190 L78,330 Z" fill="#5e6877"/>')
+    add('<defs><linearGradient id="fall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0e8"/><stop offset="1" stop-color="#e3f6fd"/></linearGradient></defs>')
+    add('<path d="M36,190 Q46,184 58,192 L64,312 L30,312 Z" fill="url(#fall)"/>')
+    add("".join(f'<path d="M{x},{196 + k * 6} L{x + 1},{300}" stroke="#ffffff" stroke-width="2" opacity="0.7" stroke-dasharray="14 10"/>' for k, x in enumerate((40, 47, 54))))
+    add(f'<path d="M-20,300 Q140,215 300,270 Q460,205 640,262 Q800,200 1100,255 V470 H-20 Z" fill="{hl[0]}"/>')
+    add(f'<path d="M-20,345 Q200,275 380,335 Q560,285 760,345 Q920,300 1100,335 V480 H-20 Z" fill="{hl[1]}"/>')
+    add(f'<path d="M640,480 Q700,260 860,235 Q1020,230 1100,320 V540 Z" fill="{hl[2]}"/>')        # June's hill
+    # the falls drop over the first foothill into a foaming pool
+    add('<path d="M30,250 Q46,244 64,252 L68,312 L28,312 Z" fill="url(#fall)"/>')
+    add('<ellipse cx="48" cy="314" rx="30" ry="12" fill="#e9f8fd"/><circle cx="34" cy="310" r="6" fill="#ffffff"/><circle cx="62" cy="310" r="7" fill="#ffffff"/><circle cx="48" cy="306" r="5" fill="#ffffff"/>')
+    ANIM["glints"] += [(40, 270), (56, 290)]
+    pc = S["patches"]
+    for (cx, cy, rx, ry, c) in [(300, 640, 380, 220, pc[0]), (800, 1000, 360, 240, pc[1]), (200, 1150, 260, 200, pc[2]),
+                                (700, 600, 300, 160, pc[3]), (500, 1350, 400, 140, pc[4])]:
         add(f'<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" fill="{c}" opacity="0.8"/>')
-    # sea and beach
-    add(f'<path d="M-20,1500 Q240,1440 520,1480 Q820,1530 1100,1470 V{MH} H-20 Z" fill="#e8d29b"/>')
-    add(f'<path d="M-20,1540 Q260,1480 520,1520 Q820,1570 1100,1510 V{MH} H-20 Z" fill="#f1dfae"/>')
+    # beach
+    add(f'<path d="M-20,1500 Q240,1440 520,1480 Q820,1530 1100,1470 V{MH} H-20 Z" fill="{S["sand"][0]}"/>')
+    add(f'<path d="M-20,1540 Q260,1480 520,1520 Q820,1570 1100,1510 V{MH} H-20 Z" fill="{S["sand"][1]}"/>')
+    # the river, from the mountains to the sea
+    add(f'<path d="{RIVER}" stroke="#d8c48f" stroke-width="58" fill="none" stroke-linecap="butt"/>')
+    add(f'<path d="{RIVER}" stroke="{S["water"]}" stroke-width="40" fill="none" stroke-linecap="butt"/>')
+    add(f'<path d="{RIVER}" stroke="#8fd0e8" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="26 34" opacity="0.8"/>')
+    L.add_water(RIVER, 29)
+    rp = sample_path(RIVER, 60)
+    ANIM["glints"] += [p for p in rp[1:-1]]
+    # the sea, drawn over the river's end so the river flows into it
     add('<defs><linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fcbe0"/><stop offset="1" stop-color="#2f7fa8"/></linearGradient></defs>')
     shore = "M-20,1720 Q260,1680 540,1715 Q820,1755 1100,1700"
     add(f'<path d="{shore} V{MH} H-20 Z" fill="url(#sea)"/>')
@@ -255,23 +306,30 @@ def build():
         x = R.uniform(20, 1060); y = R.uniform(1770, 1900)
         add(f'<path d="M{x:.0f},{y:.0f} q12,-8 24,0 q12,8 24,0" stroke="#ffffff" stroke-width="3" fill="none" opacity="{R.uniform(0.35, 0.7):.2f}" stroke-linecap="round"/>')
     for i in range(14): ANIM["glints"].append((R.uniform(60, 1040), R.uniform(1770, 1900)))
-    # the river, from the mountains to the sea
-    add(f'<path d="{RIVER}" stroke="#d8c48f" stroke-width="58" fill="none" stroke-linecap="round"/>')
-    add(f'<path d="{RIVER}" stroke="#5fb3d6" stroke-width="40" fill="none" stroke-linecap="round"/>')
-    add(f'<path d="{RIVER}" stroke="#8fd0e8" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="26 34" opacity="0.8"/>')
-    L.add_water(RIVER, 29)
-    rp = sample_path(RIVER, 60)
-    ANIM["glints"] += [p for p in rp[1:-1]]
-    # waterfall where the river leaves the mountains
-    add('<path d="M58,300 Q70,282 82,300 L86,330 L54,330 Z" fill="#cdeefa"/>')
+    # the river mouth: the river widens between sandy banks and fades into the sea (drawn over the foam line)
+    add(f'<defs><linearGradient id="mouth" gradientUnits="userSpaceOnUse" x1="0" y1="1670" x2="0" y2="1770"><stop offset="0" stop-color="{S["water"]}"/><stop offset="0.5" stop-color="{S["water"]}"/><stop offset="1" stop-color="#7fcbe0" stop-opacity="0"/></linearGradient></defs>')
+    # the fan follows the river's own centre line and widens toward the sea
+    ctr = [p for p in sample_path(RIVER, 3) if p[1] >= 1630]
+    last = ctr[-1]; dx = last[0] - ctr[-6][0]; dy = last[1] - ctr[-6][1]
+    ctr += [(last[0] + dx * k / 5, last[1] + dy * k / 5) for k in range(1, 30) if last[1] + dy * k / 5 < 1760]
+    def fan(extra, until=9999):
+        hw = lambda y: 20 + extra + max(0, y - 1640) ** 1.6 * 0.035
+        c = [p for p in ctr if p[1] <= until]
+        left = [(x - hw(y), y) for (x, y) in c]; right = [(x + hw(y), y) for (x, y) in reversed(c)]
+        return "M" + " L".join(f"{x:.1f},{y:.1f}" for (x, y) in left + right) + " Z"
+    add(f'<path d="{fan(9, 1708)}" fill="#d8c48f"/>')
+    add(f'<path d="{fan(0)}" fill="url(#mouth)"/>')
+    add('<path d="M1000,1745 q14,-6 28,0 M1040,1752 q14,-6 28,0" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.6" stroke-linecap="round"/>')
     # pond by June's hill
-    add('<ellipse cx="960" cy="580" rx="70" ry="36" fill="#d8c48f"/><ellipse cx="960" cy="580" rx="62" ry="30" fill="#5fb3d6"/>')
-    add("".join(f'<circle cx="{x}" cy="{y}" r="6" fill="#4f8c43"/><circle cx="{x + 2}" cy="{y - 2}" r="2" fill="#ff8fb5"/>' for (x, y) in [(935, 572), (975, 586), (990, 568)]))
+    add(f'<ellipse cx="960" cy="580" rx="70" ry="36" fill="#d8c48f"/><ellipse cx="960" cy="580" rx="62" ry="30" fill="{S["water"] if not S["snow"] else "#d4ecf5"}"/>')
+    if not S["snow"]: add("".join(f'<circle cx="{x}" cy="{y}" r="6" fill="#4f8c43"/><circle cx="{x + 2}" cy="{y - 2}" r="2" fill="#ff8fb5"/>' for (x, y) in [(935, 572), (975, 586), (990, 568)]))
     L.add_pond(960, 580, 66, 34)
     ANIM["glints"] += [(940, 590), (975, 575)]
     # roads (claimed before anything is placed, so nothing is built on them)
     for name, (d, half) in ROADS.items():
-        add(road(d)); L.add_road(d, half)
+        add(f'<path d="{d}" stroke="#b49868" stroke-width="36" fill="none" stroke-linecap="round" stroke-linejoin="round"/>')
+    for name, (d, half) in ROADS.items():
+        add(f'<path d="{d}" stroke="#d7bd8c" stroke-width="30" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'); L.add_road(d, half)
     add('<path d="M-20,872 L1100,872" stroke="#9e9488" stroke-width="64" fill="none"/>')
     add('<path d="M-20,872 L1100,872" stroke="#cfc6b8" stroke-width="56" fill="none"/>')
     add("".join(f'<rect x="{x}" y="{850 + (i % 3) * 15}" width="22" height="11" rx="3" fill="#bdb3a3" opacity="0.8"/>' for i, x in enumerate(range(-10, 1090, 17))))
@@ -279,18 +337,22 @@ def build():
     # stone bridges where Maple Lane and the bridge road cross the river
     add('<rect x="56" y="834" width="80" height="8" rx="3" fill="#8f8579"/><rect x="56" y="902" width="80" height="8" rx="3" fill="#8f8579"/>'
         + "".join(f'<rect x="{60 + i * 17}" y="824" width="6" height="12" fill="#8f8579"/><rect x="{60 + i * 17}" y="908" width="6" height="12" fill="#8f8579"/>' for i in range(5)))
-    add('<path d="M505,1055 L585,1055 L585,1120 L505,1120 Z" fill="#b8ada0"/><path d="M505,1060 h80 M505,1115 h80" stroke="#8f8579" stroke-width="5"/>'
-        '<path d="M515,1072 q30,-14 60,0" stroke="#d6ccbe" stroke-width="3" fill="none"/>')
-    L.add_road("M545,1055 L545,1120", 40)
+    add('<rect x="515" y="1038" width="60" height="104" rx="4" fill="#2a5f78" opacity="0.25" transform="translate(5 5)"/>'
+        '<rect x="517" y="1040" width="56" height="100" rx="3" fill="#b8ada0"/>'
+        + "".join(f'<line x1="521" y1="{1050 + i * 12}" x2="569" y2="{1050 + i * 12}" stroke="#a79c8f" stroke-width="2"/>' for i in range(8))
+        + '<rect x="513" y="1036" width="7" height="108" rx="3" fill="#8f8579"/><rect x="570" y="1036" width="7" height="108" rx="3" fill="#8f8579"/>'
+        + "".join(f'<rect x="{x}" y="{yy}" width="11" height="11" rx="2" fill="#7d7468"/>' for x in (511, 568) for yy in (1031, 1137)))
+    L.add_road("M545,1040 L545,1140", 30)
 
     # --- the farm and orchard (north-west, east of the river)
-    add(field(140, 470, 125, 72, "#d9b85c", 6, -4)); L.solid("wheat field", (132, 460, 273, 552))
-    add(field(140, 562, 125, 66, "#9cbf5a", 5, 3)); L.solid("cabbage field", (132, 554, 273, 636))
+    add(field(140, 470, 125, 72, S["fields"][0], 6, -4)); L.solid("wheat field", (132, 460, 273, 552))
+    add(field(140, 562, 125, 66, S["fields"][1], 5, 3)); L.solid("cabbage field", (132, 554, 273, 636))
     orchard = ""
     for r_ in range(3):
         for c_ in range(4):
             x, y = 175 + c_ * 40 + (r_ % 2) * 18, 335 + r_ * 34
-            orchard += tree(x, y, 0.6, "round", "#5b9a4a") + f'<circle cx="{x - 5}" cy="{y - 20}" r="3" fill="#e8442f"/><circle cx="{x + 5}" cy="{y - 14}" r="3" fill="#e8442f"/>'
+            orchard += tree(x, y, 0.6, "round", S["round"][0] if not S["apples"] else "#5b9a4a")
+            if S["apples"]: orchard += f'<circle cx="{x - 5}" cy="{y - 20}" r="3" fill="#e8442f"/><circle cx="{x + 5}" cy="{y - 14}" r="3" fill="#e8442f"/>'
     add(orchard); L.solid("orchard", (160, 300, 310, 410))
     add(put_house("red barn", 385, 452, 70, 50, depth=20, chimney=False, wall="#b8443a", roof="#7a2d26", windows=1))
     add('<rect x="482" y="382" width="22" height="70" rx="10" fill="#c9cfd6"/><ellipse cx="493" cy="382" rx="11" ry="6" fill="#9aa3ad"/>'); L.solid("silo", (480, 374, 506, 454))
@@ -326,10 +388,10 @@ def build():
     add(put_house("house south 1", 655, 968, 52, 40, depth=14, wall=palette[2][0], roof=palette[2][1]))
     add(put_house("house south 2", 770, 968, 52, 40, depth=14, wall=palette[3][0], roof=palette[3][1]))
     add(put_house("house south 3", 960, 968, 52, 40, depth=14, wall=palette[4][0], roof=palette[4][1]))
-    add(tree(430, 990, 1.6, "maple", "#d9572b")); L.solid("great maple", (395, 905, 470, 994), (420, 975, 440, 994))
+    add(tree(430, 990, 1.6, "maple", S["great"])); L.solid("great maple", (395, 905, 470, 994), (420, 975, 440, 994))
     # lamps along the street (south kerb)
     for x in (500, 600, 720, 870, 1040):
-        add(lamp(x, 940)); L.solid(f"lamp {x}", (x - 6, 906, x + 6, 942))
+        add(lamp(x, 940)); L.solid(f"lamp {x}", (x - 6, 906, x + 6, 942)); ANIM["lamps"].append((x, 908))
 
     # --- June's cottage on the hill
     add('<path d="M740,392 Q830,352 930,394" stroke="#b5ab9c" stroke-width="7" fill="none" stroke-dasharray="10 4"/>')
@@ -337,7 +399,7 @@ def build():
     add(put_tree(760, 360, 0.8, "pine") + put_tree(915, 352, 0.85, "pine") + put_tree(945, 378, 0.7, "pine"))
 
     # --- the fairground: tent, the Ferris wheel's stand (the wheel turns in the app), bunting
-    add('<ellipse cx="250" cy="1290" rx="150" ry="60" fill="#a8cf86"/>'); L.solid("fair field", (100, 1230, 400, 1350), road_ok=True)
+    add(f'<ellipse cx="250" cy="1290" rx="150" ry="60" fill="{S["fair"]}"/>'); L.solid("fair field", (100, 1230, 400, 1350), road_ok=True)
     add('<path d="M180,1310 L240,1210 L300,1310 Z" fill="#d9572b"/><path d="M215,1310 L240,1210 L265,1310 Z" fill="#fbefe0"/><rect x="237" y="1190" width="5" height="22" fill="#5b3a26"/><path d="M242,1190 l18,6 l-18,6 Z" fill="#e0a42f"/>')
     add('<path d="M326,1310 L345,1240 L364,1310" stroke="#5d7389" stroke-width="6" fill="none"/><circle cx="345" cy="1240" r="5" fill="#5d7389"/>')
     ANIM["wheel"] = (345, 1240, 48)
@@ -359,9 +421,15 @@ def build():
         add(f'<path d="M{ux - 26},{1640} Q{ux},{1608} {ux + 26},{1640} Z" fill="{uc}"/><rect x="{ux - 1.5}" y="1638" width="3" height="26" fill="#6b4630"/>'
             f'<rect x="{ux - 16}" y="1666" width="30" height="12" rx="3" fill="#ffffff" opacity="0.85"/>')
         L.solid(f"umbrella {ux}", (ux - 28, 1606, ux + 28, 1680))
-    add('<path d="M594,1712 L606,1712 L606,1870 L594,1870 Z" fill="#a87d55"/><path d="M582,1712 h36" stroke="#8a5a44" stroke-width="3"/>'
-        + "".join(f'<line x1="590" y1="{1724 + i * 14}" x2="610" y2="{1724 + i * 14}" stroke="#8a5a44" stroke-width="2"/>' for i in range(11)))
-    ANIM["boats"] = [(660, 1810, 0), (480, 1850, 1), (830, 1880, 2)]
+    # Maple Bay Harbour: harbour master's hut, a long jetty with a T end, mooring posts, a ticket board
+    add(put_house("harbour hut", 830, 1660, 54, 38, depth=14, chimney=True, wall="#dfe9ef", roof="#3f6f8f", windows=1))
+    add('<rect x="844" y="1606" width="40" height="14" rx="3" fill="#fbefe0" stroke="#3f6f8f" stroke-width="2"/>'
+        '<text x="864" y="1617" font-family="Fredoka, Arial" font-weight="700" font-size="8" fill="#3f6f8f" text-anchor="middle">FERRY</text>')
+    add('<rect x="808" y="1690" width="20" height="185" fill="#a87d55"/><rect x="760" y="1858" width="116" height="20" fill="#a87d55"/>'
+        + "".join(f'<line x1="808" y1="{1700 + i * 12}" x2="828" y2="{1700 + i * 12}" stroke="#8a5a44" stroke-width="2"/>' for i in range(14))
+        + "".join(f'<line x1="{766 + i * 12}" y1="1858" x2="{766 + i * 12}" y2="1878" stroke="#8a5a44" stroke-width="2"/>' for i in range(10))
+        + "".join(f'<circle cx="{x}" cy="{y}" r="4.5" fill="#6b4630"/>' for (x, y) in [(804, 1740), (832, 1790), (804, 1830), (762, 1882), (874, 1882)]))
+    ANIM["boats"] = [(470, 1820, 0), (300, 1870, 1), (680, 1890, 2), (920, 1840, 3)]
     add('<path d="M90,1730 Q120,1670 170,1690 Q220,1660 250,1730 Z" fill="#8d97a6"/><path d="M120,1708 Q150,1688 180,1700" stroke="#6f7a8a" stroke-width="4" fill="none"/>')
     add('<path d="M150,1692 L158,1562 L182,1562 L190,1692 Z" fill="#fbefe0"/><path d="M153,1650 L187,1650 L185,1625 L155,1625 Z" fill="#d9572b"/>'
         '<rect x="152" y="1542" width="36" height="22" rx="4" fill="#5d7389"/><path d="M148,1542 L170,1522 L192,1542 Z" fill="#d9572b"/>')
@@ -380,13 +448,14 @@ def build():
     add(forest(880, 1150, 60, 60, 6, ("round", "maple")))
     add(forest(470, 600, 110, 90, 12, ("round", "maple")))
     # dune grass, rocks, flowers
-    add("".join(f'<path d="M{x},{y} q-3,-14 -8,-18 M{x},{y} q2,-16 0,-22 M{x},{y} q4,-12 10,-16" stroke="#8fa85a" stroke-width="2.5" fill="none"/>' for (x, y) in [(300, 1580), (340, 1592), (820, 1600), (870, 1590), (420, 1585)]))
+    add("".join(f'<path d="M{x},{y} q-3,-14 -8,-18 M{x},{y} q2,-16 0,-22 M{x},{y} q4,-12 10,-16" stroke="{S["dune"]}" stroke-width="2.5" fill="none"/>' for (x, y) in [(300, 1580), (340, 1592), (620, 1592), (680, 1585), (420, 1585)]))
     for i in range(220):
         x, y = R.uniform(10, 1070), R.uniform(400, 1460)
         if not L.free(x, y, 6): continue
-        add(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="2.6" fill="{R.choice(["#ffffff", "#ffd34d", "#ff8fb5", "#c9a2ff"])}" opacity="0.85"/>')
+        c = R.choice(["#ffffff", "#ffd34d", "#ff8fb5", "#c9a2ff"])
+        if S["flowers"]: add(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="2.6" fill="{S["flowers"]["#ffffff #ffd34d #ff8fb5 #c9a2ff".split().index(c)]}" opacity="0.85"/>')
     # compass rose on the sea
-    cx, cy = 960, 1850
+    cx, cy = 70, 1866
     add(f'<circle cx="{cx}" cy="{cy}" r="44" fill="#fbefe0" opacity="0.85" stroke="#8a5a44" stroke-width="3"/>'
         f'<path d="M{cx},{cy - 40} L{cx + 9},{cy} L{cx},{cy + 40} L{cx - 9},{cy} Z" fill="#8a5a44"/>'
         f'<path d="M{cx - 40},{cy} L{cx},{cy - 9} L{cx + 40},{cy} L{cx},{cy + 9} Z" fill="#b58a6a"/>'
@@ -402,21 +471,25 @@ def anim_json():
     sc = lambda p: [round(v * SCALE) for v in p]
     return {"smoke": [sc(p) for p in ANIM["smoke"]], "glints": [sc(p) for p in ANIM["glints"]],
             "boats": [sc(p[:2]) + [p[2]] for p in ANIM["boats"]], "wheel": sc(ANIM["wheel"]),
-            "beam": sc(ANIM["beam"]), "fountain": sc(ANIM["fountain"]), "mill": sc(ANIM["mill"])}
+            "beam": sc(ANIM["beam"]), "fountain": sc(ANIM["fountain"]), "mill": sc(ANIM["mill"]),
+            "lights": [sc(p) for p in ANIM["lights"]], "lamps": [sc(p) for p in ANIM["lamps"]], "sky": round(250 * SCALE)}
 
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     w, h = int(MW * SCALE), int(MH * SCALE)
     with tempfile.TemporaryDirectory() as d:
-        png = os.path.join(d, "map.png")
-        render([(build(), png, w, h)])
-        im = Image.open(png).convert("RGB")
-        im.save(os.path.join(OUT, "map.webp"), "WEBP", quality=86, method=6)
+        jobs = [(build(season), os.path.join(d, f"{season}.png"), w, h) for season in SEASONS]
+        render(jobs)
+        for season in SEASONS:
+            im = Image.open(os.path.join(d, f"{season}.png")).convert("RGB")
+            im.save(os.path.join(OUT, f"map_{season}.webp"), "WEBP", quality=86, method=6)
+            if len(sys.argv) > 1:
+                im.resize((675, 1200)).save(os.path.join(sys.argv[1], f"map_{season}.png"))
         fog_texture(os.path.join(OUT, "fog.webp"), w // 2, h // 2)
-        if len(sys.argv) > 1:
-            im.resize((675, 1200)).save(os.path.join(sys.argv[1], "map_preview.png"))
+        old = os.path.join(OUT, "map.webp")
+        if os.path.exists(old): os.remove(old)
     json.dump({"w": w, "h": h, "spots": {k: [round(x * SCALE), round(y * SCALE)] for k, (x, y) in SPOTS.items()},
                "reveal": {k: round(REVEAL.get(k, DEFAULT_REVEAL) * SCALE) for k in SPOTS}, "anims": anim_json()},
               open(os.path.join(OUT, "map.json"), "w"), indent=1)
-    for f in ("map.webp", "fog.webp"):
+    for f in [f"map_{x}.webp" for x in SEASONS] + ["fog.webp"]:
         print(f, os.path.getsize(os.path.join(OUT, f)) // 1024, "KB")

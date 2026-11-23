@@ -19,7 +19,7 @@ Mantelpiece clock|Fork and knife with plate|Fallen leaf|Maple leaf|Chestnut|Mush
 Christmas tree|Red heart|Love letter|Heart with ribbon|Four leaf clover|Dove|Rainbow|Water wave|Sun|Ferris wheel|
 Crystal ball|Magic wand|Party popper|Confetti ball|Balloon|Hourglass done|Abacus|Input latin letters|
 Input numbers|Game die|Thought balloon|Musical note|Speaker high volume|Muted speaker|Vibration mode|Key|
-Moon cake|Woman in tuxedo|Shaved ice|Soft ice cream|Lemon|Kiwi fruit|Hot springs|Mobile phone|Admission tickets|House|Salt"""
+Moon cake|Woman in tuxedo|Shaved ice|Soft ice cream|Lemon|Kiwi fruit|Hot springs|Mobile phone|Admission tickets|House|Salt|Ferry"""
 NAMES = [n.strip() for n in NAMES.replace("\n", "").split("|") if n.strip()]
 BASE = "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/"
 OUT = "android/app/src/main/assets/items"

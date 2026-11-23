@@ -20,6 +20,7 @@ object TestClock {
     fun install(seed: Long = 42) {
         GameViewModel.testToday = { day }
         GameViewModel.testSeed = seed
+        com.surfswirl.bakery.ui.screens.MapTime.hourOverride = 12f
     }
 }
 

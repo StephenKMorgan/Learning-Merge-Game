@@ -96,14 +96,17 @@ object MapData {
 
 /**
  * Maple Lane: a map of every story location. Open locations have a pin; tap one for its stories. Places that
- * aren't open yet wait under clouds with a hint of when they're coming. New locations just add a pin.
+ * aren't open yet wait under the fog with a hint of when they're coming. New locations just add a pin.
+ * The map follows the real season (four painted versions) and the time of day (dawn, golden hour, night lights).
  */
 @Composable
 fun BakeryScreen(vm: GameViewModel, state: GameState) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val today = vm.today()
     val map = androidx.compose.runtime.remember { MapData.get(ctx) }
-    val img = androidx.compose.runtime.remember { Scenes.image(ctx, "map.webp") }
+    val season = MapTime.season(today)
+    val img = androidx.compose.runtime.remember(season) { Scenes.image(ctx, "map_$season.webp") ?: Scenes.image(ctx, "map_summer.webp") }
+    val light = androidx.compose.runtime.remember { MapTime.light(MapTime.hour()) }
     val scroll = androidx.compose.foundation.rememberScrollState()
     val current = Story.places.firstOrNull { it.chapter == Story.chapterIndex(state.tasksDone).coerceAtMost(Story.chapters.size - 1) }
         ?.let { Story.locationOf(it.id) }?.id ?: "bakery"
@@ -124,6 +127,7 @@ fun BakeryScreen(vm: GameViewModel, state: GameState) {
                 androidx.compose.foundation.Image(img, contentDescription = "Map of Maple Lane",
                     modifier = Modifier.fillMaxWidth().aspectRatio(map.w / map.h.toFloat()))
                 MapLife(map.anims, k, Modifier.matchParentSize())
+                MapNight(map.anims, k, light, Modifier.matchParentSize())
                 // Fog of war: one cloud layer over the whole town, with soft clearings cut around open places.
                 val openIds = Story.locations.filter { openPlaces(it, state, today).isNotEmpty() }.map { it.id }
                 val fog = androidx.compose.runtime.remember(openIds) { fogWithClearings(ctx, map, openIds) }
@@ -132,8 +136,11 @@ fun BakeryScreen(vm: GameViewModel, state: GameState) {
                     androidx.compose.animation.core.tween(16000), androidx.compose.animation.core.RepeatMode.Reverse), label = "dx")
                 if (fog != null) androidx.compose.foundation.Image(fog, contentDescription = null,
                     contentScale = androidx.compose.ui.layout.ContentScale.FillBounds, alpha = 0.9f,
+                    colorFilter = if (light.amount > 0.01f) androidx.compose.ui.graphics.ColorFilter.tint(
+                        androidx.compose.ui.graphics.lerp(Color.White, light.tint, (light.amount * 1.3f).coerceAtMost(0.75f)),
+                        androidx.compose.ui.graphics.BlendMode.Modulate) else null,
                     modifier = Modifier.matchParentSize().graphicsLayer { scaleX = 1.05f; scaleY = 1.02f; translationX = dx * k })
-                MapBirds(map.w * k, map.h * k, k * 1.25f, Modifier.matchParentSize())
+                MapBirds(map.w * k, map.h * k, k * 1.25f, Modifier.matchParentSize(), alpha = 1f - light.stars)
                 for (loc in Story.locations) {
                     val spot = map.spots[loc.id] ?: continue
                     val open = openPlaces(loc, state, today)

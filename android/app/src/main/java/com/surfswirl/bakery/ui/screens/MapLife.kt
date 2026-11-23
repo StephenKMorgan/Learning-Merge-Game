@@ -40,7 +40,40 @@ data class MapAnims(
     val beam: List<Int> = emptyList(),
     val fountain: List<Int> = emptyList(),
     val mill: List<Int> = emptyList(),
+    /** Window centres and street lamps, lit at night. */
+    val lights: List<List<Int>> = emptyList(),
+    val lamps: List<List<Int>> = emptyList(),
+    /** Where the sky ends (map pixels), for the stars. */
+    val sky: Int = 0,
 )
+
+/** Which season's map to show and how light it is, from the real date and clock. */
+object MapTime {
+    /** For tests and previews. */
+    var hourOverride: Float? = null
+    var seasonOverride: String? = null
+    fun hour(): Float = hourOverride ?: java.time.LocalTime.now().let { it.hour + it.minute / 60f }
+    fun season(d: java.time.LocalDate): String = seasonOverride ?: when (d.monthValue) {
+        12, 1, 2 -> "winter"; 3, 4, 5 -> "spring"; 6, 7, 8 -> "summer"; else -> "autumn"
+    }
+
+    /** tint over the town, how strong it is, how bright windows and lamps glow, how many stars show. */
+    data class Light(val tint: Color, val amount: Float, val glow: Float, val stars: Float)
+    private val night = Color(0xFF15214A)
+    private val keys = listOf(
+        0f to Light(night, 0.58f, 1f, 1f), 5f to Light(night, 0.58f, 1f, 1f),
+        6.5f to Light(Color(0xFFFF8FA3), 0.2f, 0.3f, 0.15f), 8f to Light(Color.White, 0f, 0f, 0f),
+        16.5f to Light(Color.White, 0f, 0f, 0f), 18f to Light(Color(0xFFFF9A3C), 0.2f, 0.2f, 0f),
+        19.5f to Light(Color(0xFF4B3C7A), 0.38f, 0.8f, 0.4f), 21f to Light(night, 0.58f, 1f, 1f), 24f to Light(night, 0.58f, 1f, 1f),
+    )
+    fun light(h: Float): Light {
+        val i = keys.indexOfLast { it.first <= h }.coerceIn(0, keys.size - 2)
+        val (h0, a) = keys[i]; val (h1, b) = keys[i + 1]
+        val t = ((h - h0) / (h1 - h0)).coerceIn(0f, 1f)
+        fun f(x: Float, y: Float) = x + (y - x) * t
+        return Light(androidx.compose.ui.graphics.lerp(a.tint, b.tint, t), f(a.amount, b.amount), f(a.glow, b.glow), f(a.stars, b.stars))
+    }
+}
 
 /** Seconds on a loop, for all the map's little movements. */
 @Composable
@@ -104,6 +137,11 @@ fun MapLife(a: MapAnims, scale: Float, modifier: Modifier) {
         // boats rocking on the sea
         a.boats.forEach { b ->
             val i = b.getOrElse(2) { 0 }
+            if (i == 3) {
+                val c = Offset(b[0] * scale, b[1] * scale + sin(time * 1.1f) * 2f * k)
+                rotate(sin(time * 0.9f) * 1.5f, c) { ferry(c, k) }
+                return@forEach
+            }
             val c = Offset(b[0] * scale + sin(time * 0.15f + i) * 18f * k, b[1] * scale + sin(time * 1.4f + i * 2f) * 3f * k)
             rotate(sin(time * 1.1f + i) * 5f, c) { boat(c, k, boatColors[i % boatColors.size]) }
         }
@@ -131,7 +169,8 @@ fun MapLife(a: MapAnims, scale: Float, modifier: Modifier) {
 
 /** Birds gliding over the town (drawn above the fog, so the map is alive even before much is revealed). */
 @Composable
-fun MapBirds(w: Float, h: Float, k: Float, modifier: Modifier) {
+fun MapBirds(w: Float, h: Float, k: Float, modifier: Modifier, alpha: Float = 1f) {
+    if (alpha <= 0.02f) return
     val time = mapClock()
     Canvas(modifier) {
         val flocks = listOf(Triple(0.12f, 0.018f, 0f), Triple(0.47f, 0.013f, 0.4f), Triple(0.78f, 0.016f, 0.7f))
@@ -146,7 +185,7 @@ fun MapBirds(w: Float, h: Float, k: Float, modifier: Modifier) {
                     moveTo(pos.x - wing, pos.y - lift); quadraticTo(pos.x - wing / 2, pos.y - lift / 3, pos.x, pos.y)
                     quadraticTo(pos.x + wing / 2, pos.y - lift / 3, pos.x + wing, pos.y - lift)
                 }
-                drawPath(path, Color(0xCC3B3F4A), style = Stroke(2.2f * k, cap = StrokeCap.Round))
+                drawPath(path, Color(0xCC3B3F4A).copy(alpha = 0.8f * alpha), style = Stroke(2.2f * k, cap = StrokeCap.Round))
             }
         }
     }
@@ -155,6 +194,57 @@ fun MapBirds(w: Float, h: Float, k: Float, modifier: Modifier) {
 private fun DrawScope.sparkle(c: Offset, r: Float, color: Color) {
     drawLine(color, c - Offset(r, 0f), c + Offset(r, 0f), r * 0.28f, StrokeCap.Round)
     drawLine(color, c - Offset(0f, r), c + Offset(0f, r), r * 0.28f, StrokeCap.Round)
+}
+
+private fun DrawScope.ferry(c: Offset, k: Float) {
+    translate(c.x, c.y) {
+        val hull = Path().apply { moveTo(-46f * k, -4f * k); lineTo(50f * k, -4f * k); lineTo(38f * k, 16f * k); lineTo(-40f * k, 16f * k); close() }
+        drawPath(hull, Color(0xFFF6F2EA))
+        drawRect(Color(0xFFD9572B), Offset(-42f * k, 8f * k), Size(84f * k, 5f * k))
+        drawRoundRect(Color(0xFFFBEFE0), Offset(-30f * k, -22f * k), Size(54f * k, 18f * k), CornerRadius(3f * k))
+        for (j in 0 until 5) drawRect(Color(0xFF5D7389), Offset((-26f + j * 10f) * k, -17f * k), Size(6f * k, 6f * k))
+        drawRect(Color(0xFF3F6F8F), Offset(4f * k, -36f * k), Size(10f * k, 14f * k))
+        drawRect(Color(0xFFD9572B), Offset(4f * k, -36f * k), Size(10f * k, 4f * k))
+        drawOval(Color.White.copy(alpha = 0.45f), Offset(-52f * k, 14f * k), Size(108f * k, 6f * k))
+    }
+}
+
+/** Evening and night over the town: a colour wash, lit windows and lamps, stars and the moon. */
+@Composable
+fun MapNight(a: MapAnims, scale: Float, light: MapTime.Light, modifier: Modifier) {
+    if (light.amount <= 0.01f && light.glow <= 0.01f) return
+    val time = mapClock()
+    Canvas(modifier) {
+        val k = scale * 1.25f
+        drawRect(light.tint.copy(alpha = light.amount))
+        if (light.stars > 0.01f) {
+            val skyH = a.sky * scale
+            val rnd = kotlin.random.Random(5)
+            repeat(40) { i ->
+                val p = Offset(rnd.nextFloat() * size.width, rnd.nextFloat() * skyH * 0.8f)
+                val tw = 0.55f + 0.45f * sin(time * 1.7f + i * 1.3f)
+                drawCircle(Color(0xFFFFF8E1).copy(alpha = light.stars * tw), (1.2f + rnd.nextFloat() * 1.4f) * k, p)
+            }
+            val moon = Offset(size.width * 0.86f, skyH * 0.28f)
+            drawCircle(Color(0x33FFF6D5).copy(alpha = 0.3f * light.stars), 26f * k, moon)
+            drawCircle(Color(0xFFFFF6D5).copy(alpha = light.stars), 14f * k, moon)
+            drawCircle(light.tint.copy(alpha = light.stars), 12f * k, moon + Offset(6f * k, -4f * k))
+        }
+        if (light.glow > 0.01f) {
+            val warm = Color(0xFFFFD27A)
+            a.lights.forEachIndexed { i, w ->
+                val c = Offset(w[0] * scale, w[1] * scale)
+                val on = if (i % 7 == 3) 0.4f else 1f   // not every window is lit
+                drawRect(Color(0xFFFFE9A8).copy(alpha = light.glow * on), c - Offset(5.5f * k, 6f * k), Size(11f * k, 12f * k))
+                drawCircle(Brush.radialGradient(listOf(warm.copy(alpha = 0.45f * light.glow * on), Color.Transparent), c, 18f * k), 18f * k, c)
+            }
+            a.lamps.forEach { l ->
+                val c = Offset(l[0] * scale, l[1] * scale)
+                drawCircle(Brush.radialGradient(listOf(warm.copy(alpha = 0.6f * light.glow), Color.Transparent), c, 30f * k), 30f * k, c)
+                drawCircle(Color(0xFFFFF1C2).copy(alpha = light.glow), 4f * k, c)
+            }
+        }
+    }
 }
 
 private fun DrawScope.boat(c: Offset, k: Float, color: Color) {

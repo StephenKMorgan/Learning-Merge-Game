@@ -198,6 +198,8 @@ object Story {
         Location("beach", "The Beach", "umbrella_on_ground", emptyList(), teaser = "Coming this summer"),
         Location("orchard", "The Orchard", "red_apple", emptyList(), teaser = "Coming in the fall"),
         Location("fair", "The Fairground", "party_popper", emptyList(), teaser = "Coming for the Bake-Off"),
+        // The harbour: one day a ferry ticket takes Mandy across the bay to a whole new map.
+        Location("harbor", "Maple Bay Harbour", "ferry", emptyList(), teaser = "A ferry to somewhere new"),
     )
 
     fun locationOf(placeId: String) = locations.firstOrNull { placeId in it.places }
