@@ -30,6 +30,8 @@ fully offline. In-game "purchases" are paid with brain puzzles instead of money.
   multiplied by her chosen colour) and `variant` (hair style or "glasses"). Her portrait is built the same way from
   `assets/items/mandy/parts.json` (`MandyAvatar`; `ItemArt("mandy_face")` uses it). In scene files always add her
   with `mandy_layers(...)` / `mandy_standing_layers(...)`, never a single flat image.
+  Her name is customizable too (`Avatar.name`): keep writing "Mandy" in story text; dialogue swaps in her chosen
+  name (`Avatar.personalize`).
 - `tools/` — `prepare_art.py` (downloads Fluent emoji + converts to WebP), `make_cinnamon_art.py`,
   `make_sfx.py`, `make_icon.py`,
   `scenes/` (`make_scenes.py` renders the scene SVGs in `inside.py` / `patio.py` / `common.py` with Chromium).

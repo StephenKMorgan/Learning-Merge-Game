@@ -129,6 +129,21 @@ private fun CustomizeDialog(vm: GameViewModel, state: GameState) {
     Card(vm, "Your baker") {
         com.surfswirl.bakery.ui.components.MandyAvatar(Modifier.size(150.dp).bob(2f), a)
         Spacer(Modifier.height(8.dp))
+        val focus = androidx.compose.ui.platform.LocalFocusManager.current
+        androidx.compose.material3.OutlinedTextField(
+            value = a.name,
+            onValueChange = { v -> vm.updateSettings { it.copy(avatar = it.avatar.copy(name = v.take(com.surfswirl.bakery.game.Looks.MAX_NAME))) } },
+            label = { Text("Name") },
+            placeholder = { Text("Mandy") },
+            singleLine = true,
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words,
+                imeAction = androidx.compose.ui.text.input.ImeAction.Done),
+            keyboardActions = androidx.compose.foundation.text.KeyboardActions(onDone = { focus.clearFocus() }),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Baker name" },
+        )
+        Spacer(Modifier.height(8.dp))
         Text("Hair style", style = MaterialTheme.typography.titleSmall)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             for ((id, name) in com.surfswirl.bakery.game.Looks.hairStyles) {
@@ -222,21 +237,22 @@ private fun Talk(lines: List<Line>, title: String, onDone: () -> Unit) {
     var i by remember(lines) { mutableIntStateOf(0) }
     val line = lines.getOrNull(i) ?: return
     val who = Content.character(line.who)
+    val avatar = com.surfswirl.bakery.ui.theme.LocalAvatar.current
     val pop = remember(i) { Animatable(0.85f) }
     LaunchedEffect(i) { pop.animateTo(1f, spring(dampingRatio = 0.4f)) }
     Column(Modifier.fillMaxWidth().semantics { contentDescription = "Dialogue" }
         .clickable(remember { MutableInteractionSource() }, null) { if (i < lines.size - 1) i++ else onDone() }
         .padding(12.dp)) {
-        if (title.isNotEmpty() && i == 0) OutlinedText(title, 22, modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 8.dp))
+        if (title.isNotEmpty() && i == 0) OutlinedText(avatar.personalize(title), 22, modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 8.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             ItemArt(who.art, Modifier.size(110.dp).graphicsLayer { scaleX = pop.value; scaleY = pop.value }.bob(3f))
             Spacer(Modifier.width(4.dp))
             Box(Modifier.clip(RoundedCornerShape(50)).background(Palette.Pink).border(2.dp, Color.White, RoundedCornerShape(50))
-                .padding(horizontal = 14.dp, vertical = 4.dp)) { OutlinedText(who.name, 16, outline = Palette.PinkDark) }
+                .padding(horizontal = 14.dp, vertical = 4.dp)) { OutlinedText(if (who.id == "mandy") avatar.displayName else who.name, 16, outline = Palette.PinkDark) }
         }
         Panel(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                Text(line.text, style = MaterialTheme.typography.bodyLarge)
+                Text(avatar.personalize(line.text), style = MaterialTheme.typography.bodyLarge)
                 Spacer(Modifier.height(6.dp))
                 Text(if (i < lines.size - 1) "Tap to continue ▸" else "Tap to close", Modifier.align(Alignment.End),
                     style = MaterialTheme.typography.bodySmall)

@@ -90,7 +90,7 @@ fun SettingsScreen(vm: GameViewModel, state: GameState) {
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
                             Text("Your baker", style = MaterialTheme.typography.titleMedium)
-                            Text("Change Mandy's hair, skin tone, outfit and glasses", style = MaterialTheme.typography.bodySmall)
+                            Text("${s.avatar.displayName} · name, hair, skin tone, apron and glasses", style = MaterialTheme.typography.bodySmall)
                         }
                         CandyButton("Customize", small = true, color = Palette.Pink, dark = Palette.PinkDark) {
                             vm.pushDialog(com.surfswirl.bakery.ui.Dialog.Customize)

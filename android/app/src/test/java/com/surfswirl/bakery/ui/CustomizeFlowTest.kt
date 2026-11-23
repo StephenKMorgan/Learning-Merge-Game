@@ -1,6 +1,10 @@
 package com.surfswirl.bakery.ui
 
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.surfswirl.bakery.MainActivity
 import com.surfswirl.bakery.game.Looks
@@ -36,6 +40,7 @@ class CustomizeFlowTest {
         rule.tapDesc("Skin tone 4")
         rule.tapDesc("Apron 2")
         rule.tapDesc("Glasses: off")
+        rule.onAllNodesWithContentDescription("Baker name").onFirst().performTextReplacement("Kay")
         rule.shot("look-2-customized")
         val a = rule.vm().state.value.settings.avatar
         assertEquals("long", a.hairStyle)
@@ -43,6 +48,7 @@ class CustomizeFlowTest {
         assertEquals(Looks.skinTones[3], a.skin)
         assertEquals(Looks.outfits[1], a.outfit)
         assertTrue(a.glasses)
+        assertEquals("Kay", a.name)
         rule.tapDesc("Done")
 
         // The new look in a scene and in story dialogue
@@ -50,8 +56,12 @@ class CustomizeFlowTest {
         rule.waitText("Next task")
         rule.mainClock.advanceTimeBy(1500)
         rule.shot("look-3-scene")
-        rule.vm().pushDialog(Dialog.Talk(Story.intro))
+        rule.vm().pushDialog(Dialog.Talk(listOf(com.surfswirl.bakery.game.Line("june", "Welcome, Mandy! Mandy's bakery is the talk of the town."),
+            com.surfswirl.bakery.game.Line("mandy", "Thank you, June!"))))
         rule.waitDesc("Dialogue")
+        rule.waitText("Welcome, Kay! Kay's bakery")
         rule.shot("look-4-dialogue")
+        rule.onAllNodesWithContentDescription("Dialogue").onFirst().performClick()
+        rule.waitText("Kay")
     }
 }
